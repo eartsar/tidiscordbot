@@ -48,11 +48,11 @@ def on_message(message):
     elif message.content.startswith("!lookup"):
         lookup(message)
     elif message.content.startswith("!poll"):
-        return
+        poll(message)
     elif message.content.startswith("!seen"):
         seen(message)
     elif message.content.startswith("!vote"):
-        return
+        vote(message)
 
 
 @client.event
