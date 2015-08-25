@@ -203,7 +203,7 @@ def poll(message):
         return
 
     currentPoll = tipoll.Poll(message.author, opts[0], opts[1:])
-    s = "**" + message.author[0].upper() + message.author[1:] + " starts a poll.**\n" + currentPoll.pretty_print()
+    s = "**" + message.author.name + " starts a poll.**\n" + currentPoll.pretty_print()
     client.send_message(message.channel, s)
 
 
@@ -222,8 +222,7 @@ def vote(message):
         client.send_message(message.channel, "There is no poll underway.")
     choice = int(choice)
     currentPoll.vote(message.author, choice)
-    client.send_message(message.channel, message.author.name[0].upper() + message.author.name[1:] + \
-        " casts a vote for **" + str(choice) + "**.")
+    client.send_message(message.channel, message.author.name + " casts a vote for **" + str(choice) + "**.")
     return
 
 
