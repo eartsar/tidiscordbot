@@ -13,6 +13,18 @@ Ti Discord Bot Functions:
 def main():
     if len(sys.argv) != 3:
         print "Usage: python bot.py <email> <password>"
+
+    # Create necessary files for data tracking
+    if not os.path.isfile("boats.dat"):
+        f = open("boats.dat", "w")
+        f.write("{}")
+        f.close()
+
+    if not os.path.isfile("seen.dat"):
+        f = open("seen.dat", "w")
+        f.write("{}")
+        f.close()
+
     client.login(sys.argv[1], sys.argv[2])
     client.run()
 
@@ -37,15 +49,18 @@ def on_ready():
     print('------')
 
 
+@client.event
+def on_status(server, user, status, gameid):
+    print str(server)
+    print str(user)
+    print str(status)
+    print str(gameid)
+
+
 
 def boat(message):
     """Manage upboats/downboats of things. Stored in flat json file: boats.dat"""
     content = message.content
-    # create the file if it doesn't exist
-    if not os.path.isfile("boats.dat"):
-        f = open("boats.dat", "w")
-        f.write("{}")
-        f.close()
 
     # load the data as json
     f = open("boats.dat", "r")
@@ -127,6 +142,23 @@ def lookup(message):
 
     if response:
         client.send_message(message.channel, response)
+    return
+
+
+def seen(message):
+    user = message.content[len("!seen "):].strip()
+    key = user.lower()
+    if not user:
+        return
+
+    f = open("seen.dat", "r")
+    data = json.loads(f.read())
+    f.close()
+
+    if key not in data:
+        client.send_message(message.channel, "I haven't seen " + user + " before.")
+    else:
+        client.send_message(message.channel, user[0].upper() + user[1:] + " was last seen **" + str(data[key]) + " ago**.")
     return
 
 
