@@ -7,6 +7,7 @@ Ti Discord Bot Functions:
 !help               - displays this information
 !boat <thing>++/--  - upboat or downboat a thing (useless)
 !lookup <word>      - look up a word in the Merriam-Webster dictionary for you illiterate plebs
+!seen <user>        - check to see when the user was last online
 """ 
 
 
