@@ -190,7 +190,7 @@ def poll(message):
                 client.send_message(message.channel, "**Poll closed!**\n" + currentPoll.pretty_print())
                 currentPoll = None
             else:
-                client.send_message(message.channel, "The poll is open for another " + str(currentPoll.time_left()) + ".")
+                client.send_message(message.channel, "The poll is open for another %.0f seconds." % currentPoll.time_left())
         return
 
     if currentPoll:
@@ -199,7 +199,7 @@ def poll(message):
 
     # !poll question;choice;choice...
     opts = opts.split(";")
-    if len(opts) < 3:
+    if len(opts) < 3 or len(opts) > 9:
         return
 
     currentPoll = tipoll.Poll(message.author, opts[0], opts[1:])
@@ -216,7 +216,7 @@ def vote(message):
         client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
 
-    if choice not in "01234566789":
+    if choice not in "1234566789":
         return
     if not poll:
         client.send_message(message.channel, "There is no poll underway.")

@@ -17,7 +17,7 @@ class Poll(object):
             return False
 
         self.votes[user] = n
-        self.tally[n] += 1
+        self.tally[n - 1] += 1
         return True
 
 
@@ -33,8 +33,8 @@ class Poll(object):
 
 
     def pretty_print(self):
-        s = "**" + self.author.name + "'s poll: " + self.question + "\n\n"
+        s = "**" + self.author.name + "'s poll: " + self.question + "\n"
         for i in range(len(self.options)):
-            s += "[" + str(i) + "] - " + str(self.tally[i]) + " votes - " + self.options[i] + "\n"
+            s += "  *" + self.options[i] + "*  (option " + str(i + 1) + ")  **" + str(self.tally[i]) + " votes**\n"
         return s
 
