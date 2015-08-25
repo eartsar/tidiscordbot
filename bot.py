@@ -6,7 +6,7 @@ client = discord.Client()
 # spacing sucks because it's not a monospace font
 HELP_MSG = """\
 **Ti Discord Bot Functions:**
-!help, !boat, !lookup, !poll, !seen
+!help, !boat, !lookup, !poll, !seen, !test, !vote
 
 Type !help <command> in a PM to **ti-bot** for more information on syntax and functions.
 """ 
@@ -376,11 +376,12 @@ def main():
 
     if not handlers:
         handlers = {}
-        handlers["!test"] = cmd_test
         handlers["!boat"] = cmd_boat
         handlers["!help"] = cmd_help
         handlers["!lookup"] = cmd_lookup
         handlers["!poll"] = cmd_poll
+        handlers["!seen"] = cmd_seen
+        handlers["!test"] = cmd_test
         handlers["!vote"] = cmd_vote
         
     client.login(sys.argv[1], sys.argv[2])
