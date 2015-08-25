@@ -21,7 +21,7 @@ def on_message(message):
     if message.content.startswith('!test'):
         client.send_message(message.channel, 'Ti Discord Bot is up and running!')
     elif message.content.startswith("!boat"):
-        boat(message)
+        boat(message.content)
     elif message.content.startswith("!help"):
         client.send_message(message.channel, HELP_MSG)
 
