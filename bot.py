@@ -56,7 +56,7 @@ def boat(message):
     if not thing:
         s = "All of these things have boats:"
         for k in data:
-            s = s + k + ": " + data[k] + "\n"
+            s = s + k + ": " + str(data[k]) + "\n"
         client.send_message(message.channel, s)
         return
     
@@ -68,7 +68,7 @@ def boat(message):
 
     # !boat <thing> - list the boat of the thing
     if op not in ("++", "--") and kthing in data:
-        client.send_message(message.channel, thing + " has " + data[kthing] + " boats.")
+        client.send_message(message.channel, thing + " has " + str(data[kthing]) + " boats.")
         return
 
     thing = thing[:-2]
@@ -83,7 +83,7 @@ def boat(message):
         else:
             data[kthing] = data[kthing] - 1
 
-    client.send_message(message.channel, "Upboats for " + thing + "! " + thing[0].upper() + thing[1:] + " now has " + data[kthing] + " boats.")
+    client.send_message(message.channel, "Upboats for " + thing + "! " + thing[0].upper() + thing[1:] + " now has " + str(data[kthing]) + " boats.")
     f = open("boats.dat", "w")
     f.write(json.dumps(data))
     f.close()
