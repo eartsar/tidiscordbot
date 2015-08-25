@@ -39,6 +39,8 @@ def on_message(message):
         client.send_message(message.channel, HELP_MSG)
     elif message.content.startswith("!lookup"):
         lookup(message)
+    elif message.content.startswith("!seen"):
+        seen(message)
 
 
 @client.event
