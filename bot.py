@@ -1,4 +1,4 @@
-import discord, sys, os, json, urbandict
+import discord, sys, os, json, urbandict, time
 
 
 client = discord.Client()
@@ -51,11 +51,16 @@ def on_ready():
 
 @client.event
 def on_status(server, user, status, gameid):
-    print str(server)
-    print str(user)
-    print str(status)
-    print str(gameid)
+    # update the last seen data file
+    f = open("seen.dat", "r")
+    data = json.loads(f.read())
+    f.close()
 
+    data[user] = time.time()
+
+    f = open("seen.dat", "w")
+    f.write(json.dumps(data))
+    f.close()
 
 
 def boat(message):
@@ -155,10 +160,23 @@ def seen(message):
     data = json.loads(f.read())
     f.close()
 
+    for member in message.channel.server.members:
+        if member.name.lower() == key:
+            client.send_message(message.channel, user + " is currently online.")
+            return
+
     if key not in data:
         client.send_message(message.channel, "I haven't seen " + user + " before.")
     else:
-        client.send_message(message.channel, user[0].upper() + user[1:] + " was last seen **" + str(data[key]) + " ago**.")
+        t = data[key]
+        tdiff = time.time() - t
+        days = tdiff // 86400
+        hours = tdiff // 3600 % 24
+        minutes = tdiff // 60 % 60
+        seconds = tdiff % 60
+        client.send_message(message.channel, user[0].upper() + user[1:] + \
+            " was last seen **%s days, %s hours, %s minutes, and %s seconds ago**." \
+            % str(days), str(hours), str(minutes), str(seconds))
     return
 
 
