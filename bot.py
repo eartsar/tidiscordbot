@@ -58,11 +58,11 @@ def boat(message):
         top_keys = bottom_keys[::-1]
 
         s = "Top 5 upboated things:\n"
-        for k in top_keys:
+        for k in top_keys[:5]:
             s = s + k.lower() + ": " + str(data[k]) + "\n"
 
-        s = "Bottom 5 downboated things:\n"
-        for k in bottom_keys:
+        s = s + "\n\nBottom 5 downboated things:\n"
+        for k in bottom_keys[:5]:
             s = s + k.lower() + ": " + str(data[k]) + "\n"
         
         client.send_message(message.channel, s)
