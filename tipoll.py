@@ -6,7 +6,7 @@ class Poll(object):
         super(Poll, self).__init__()
         self.author = author
         self.question = question
-        self.created_at = time.now()
+        self.created_at = time.time()
         self.options = options
         self.tally = dict(zip([_ for _ in range(len(options))], [0 for _ in options]))
         self.votes = {}
