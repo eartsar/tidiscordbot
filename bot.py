@@ -202,6 +202,10 @@ def poll(message):
     if len(opts) < 3 or len(opts) > 9:
         return
 
+    for i in range(len(opts)):
+        opts[i] = opts[i].strip()
+
+
     currentPoll = tipoll.Poll(message.author, opts[0], opts[1:])
     s = "**" + message.author.name + " starts a poll.**\n" + currentPoll.pretty_print()
     client.send_message(message.channel, s)
