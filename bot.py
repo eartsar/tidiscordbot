@@ -1,4 +1,4 @@
-import discord, sys, os, json, urbandict, time
+import discord, sys, os, json, urbandict, time, poll
 
 
 client = discord.Client()
@@ -10,7 +10,12 @@ HELP_MSG = """\
 !boat <thing>++/--     - upboat or downboat a thing (useless)
 !lookup <word>            - look up a word in the Merriam-Webster dictionary for you illiterate plebs
 !seen <user>                 - check to see when the user was last online
+!poll <question;choice;choice...>   - Create a poll with choices
+    !poll close                   - Closes the poll (must be creator, or 5 minutes passed)
+    !vote <choice>                - Votes in a poll 
 """ 
+
+poll = None
 
 
 def main():
@@ -42,8 +47,12 @@ def on_message(message):
         client.send_message(message.channel, HELP_MSG)
     elif message.content.startswith("!lookup"):
         lookup(message)
+    elif message.content.startswith("!poll"):
+        return
     elif message.content.startswith("!seen"):
         seen(message)
+    elif message.content.startswith("!vote"):
+        return
 
 
 @client.event
@@ -153,6 +162,46 @@ def lookup(message):
 
     if response:
         client.send_message(message.channel, response)
+    return
+
+
+def poll(message):
+    rest = message.content[len("!poll "):].strip()
+    
+    # !poll - display the poll
+    if not opts:
+        if poll:
+            client.send_message(message.channel, poll.pretty_print())
+        else:
+            client.send_message(message.channel, "There is no poll underway.")
+        return
+
+    # !poll close - close the poll
+    if opts == "close":
+        if not poll:
+            client.send_message(message.channel, "There is no poll underway.")
+        else:
+            if poll.can_close(message.author):
+                client.send_message(message.channel, "**Poll closed!**\n" + poll.pretty_print())
+                poll = None
+            else:
+                client.send_message(message.channel, "The poll is open for another " + str(poll.time_left()) + "."
+        return
+
+    if poll:
+        client.send_message(message.channel, "A poll is already underway. Let that one finish first before starting another.")
+        return
+
+    # !poll question;choice;choice...
+    opts = rest.split(";")
+    if len(opts) < 3:
+        return
+
+
+def vote(message):
+    choice = message.content[len("!vote "):].strip()
+    if not poll:
+        client.send_message(message.channel, "There is no poll underway.")
     return
 
 
