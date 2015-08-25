@@ -72,18 +72,22 @@ def boat(message):
         return
 
     thing = thing[:-2]
+    sop = ""
     if op == "++":
+        sop = "Upboats"
         if kthing not in data:
             data[kthing] = 1
         else:
             data[kthing] = data[kthing] + 1
     elif op == "--":
+        sop = "Downboats"
         if kthing not in data:
             data[kthing] = -1
         else:
             data[kthing] = data[kthing] - 1
 
-    client.send_message(message.channel, "Upboats for " + thing + "! " + thing[0].upper() + thing[1:] + " now has " + str(data[kthing]) + " boats.")
+
+    client.send_message(message.channel, sop + " for " + thing + "! " + thing[0].upper() + thing[1:] + " now has " + str(data[kthing]) + " boats.")
     f = open("boats.dat", "w")
     f.write(json.dumps(data))
     f.close()
