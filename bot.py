@@ -115,9 +115,9 @@ def lookup(message):
         return
 
     response = ""
-    entry = urbandict.define(word)
+    entry = urbandict.define(word)[0]
 
-    if "There aren't any definitions for " in entry[0]["def"]:
+    if "There aren't any definitions for " in entry["def"]:
         return
 
     response = "**" + entry["word"] + "**\n"
