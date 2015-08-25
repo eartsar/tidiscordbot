@@ -120,10 +120,10 @@ def lookup(message):
     if "There aren't any definitions for " in entry["def"]:
         return
 
-    response = "**" + entry["word"] + "**\n"
-    response += entry["def"] + "\n"
+    response = "**" + entry["word"].strip() + "**\n"
+    response += entry["def"].strip() + "\n"
     if entry["example"]:
-        response += "*" + entry["example"] + "*"
+        response += "*" + entry["example"].strip() + "*"
 
     if response:
         client.send_message(message.channel, response)
