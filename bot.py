@@ -56,7 +56,7 @@ def boat(message):
     if not thing:
         s = "All of these things have boats:\n"
         for k in data:
-            s = s + k + ": " + str(data[k]) + "\n"
+            s = s + k.lower() + ": " + str(data[k]) + "\n"
         client.send_message(message.channel, s)
         return
     
@@ -72,6 +72,7 @@ def boat(message):
         return
 
     thing = thing[:-2]
+    kthing = thing.lower()
     sop = ""
     if op == "++":
         sop = "Upboats"
