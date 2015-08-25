@@ -6,54 +6,31 @@ client = discord.Client()
 # spacing sucks because it's not a monospace font
 HELP_MSG = """\
 **Ti Discord Bot Functions:**
-!help                                 - displays this information
-!boat <thing>++/--     - upboat or downboat a thing (useless)
-!lookup <word>            - look up a word in the Merriam-Webster dictionary for you illiterate plebs
-!seen <user>                 - check to see when the user was last online
-!poll <question;choice;choice...>   - Create a poll with choices
-    !poll close                   - Closes the poll (must be creator, or 5 minutes passed)
-    !vote <choice>                - Votes in a poll 
+!help, !boat, !lookup, !poll, !seen
+
+Type !help <command> in a PM to **ti-bot** for more information on syntax and functions.
 """ 
 
 currentPoll = None
-
-
-def main():
-    if len(sys.argv) != 3:
-        print "Usage: python bot.py <email> <password>"
-
-    # Create necessary files for data tracking
-    if not os.path.isfile("boats.dat"):
-        f = open("boats.dat", "w")
-        f.write("{}")
-        f.close()
-
-    if not os.path.isfile("seen.dat"):
-        f = open("seen.dat", "w")
-        f.write("{}")
-        f.close()
-
-    client.login(sys.argv[1], sys.argv[2])
-    client.run()
+handlers = None
 
 
 @client.event
 def on_message(message):
-    if message.content.startswith('!test'):
-        client.send_message(message.channel, 'Ti Discord Bot is up and running!')
-    elif message.content.startswith("!boat"):
-        boat(message)
-    elif message.content.startswith("!help"):
-        client.send_message(message.channel, HELP_MSG)
-    elif message.content.startswith("!lookup"):
-        lookup(message)
-    elif message.content.startswith("!poll"):
-        poll(message)
-    elif message.content.startswith("!seen"):
-        seen(message)
-    elif message.content.startswith("!vote"):
-        vote(message)
+    global handlers
 
+    if not handlers:
+        print "on_message abort - handlers dict not populated"
+        return
+
+    tokens = message.content.split(" ")
+    cmd_token = tokens[0]
+    if cmd_token not in handlers:
+        return
+
+    # call the handler
+    handlers[cmd_token](message)
+    
 
 @client.event
 def on_ready():
@@ -78,8 +55,56 @@ def on_status(server, user, status, gameid):
     f.close()
 
 
-def boat(message):
-    """Manage upboats/downboats of things. Stored in flat json file: boats.dat"""
+def cmd_test(message):
+    """
+    **!test**
+
+    Usage:
+      !test
+
+    Tests to make sure the bot is listening to messages.
+    """
+    client.send_message(message.channel, 'Ti Discord Bot is up and running!')
+    return
+
+
+def cmd_help(message):
+    """
+    **!help**
+
+    Usage:
+      !help [command]
+
+    Gets more information on commands. Specify a command for more detailed 
+    information.
+    """
+    global handlers
+    cmd = message.content[len("!help "):].strip()
+    if not cmd or cmd not in handlers:
+        client.send_message(message.channel, HELP_MSG)
+        return
+
+    client.send_message(message.author, handlers[cmd].__doc__)
+    return
+
+
+def cmd_boat(message):
+    """
+    **!boat**
+
+    Usage:
+      !boat [thing[++] | thing[--]]
+
+    Example:
+      !boat
+      !boat fura
+      !boat drakeon--
+
+    Upboats/downboats a thing. Note that this need not be a user - it can 
+    be *anything*. Not specifying a thing will show the top 5 upboated and 
+    bottom 5 downboated things. Specifying a thing, but no ++/-- operation 
+    will display that thing's boat count.
+    """
     content = message.content
 
     # load the data as json
@@ -143,8 +168,19 @@ def boat(message):
     return
 
 
-def lookup(message):
-    """Lookup a word via urbandictionary."""
+def cmd_lookup(message):
+    """
+    **!lookup**
+
+    Usage:
+      !lookup <term>
+
+    Example:
+      !lookup ironically
+
+    Looks up the term on Merriam-Webster's online dictionary.
+    And by Merriam-Webster, we do mean Urban Dictionary.
+    """
     word = message.content[len("!lookup "):].strip()
     if not word:
         return
@@ -165,7 +201,26 @@ def lookup(message):
     return
 
 
-def poll(message):
+def cmd_poll(message):
+    """
+    **!poll**
+
+    Usage:
+      !poll
+      !poll <Question;Choice;Choice[;Choice...]>
+      !poll close
+
+    Example:
+      !poll Ride zee Shoopuf?; Sure!; Nope.
+      !poll Go left or right?;left;right
+
+    Starts a poll. Users can vote on a choice using **!vote**.
+    Typing **!poll** with no arguments will show the current poll.
+    The *close* argument will end the poll. Note that only the poll's
+    creator can close the poll for the first five minutes.
+
+    *Only one poll may be active at a time.*
+    """
     global currentPoll
     opts = message.content[len("!poll "):].strip()
 
@@ -211,7 +266,18 @@ def poll(message):
     client.send_message(message.channel, s)
 
 
-def vote(message):
+def cmd_vote(message):
+    """
+    **!vote**
+
+    Usage:
+      !vote <choice>
+
+    Example:
+      !vote 2
+    
+    Votes for a choice in the current poll.
+    """
     choice = message.content[len("!vote "):].strip()
     if not choice:
         return
@@ -222,7 +288,7 @@ def vote(message):
 
     if choice not in "1234566789":
         return
-    if not poll:
+    if not currentPoll:
         client.send_message(message.channel, "There is no poll underway.")
     choice = int(choice)
     currentPoll.vote(message.author, choice)
@@ -230,7 +296,21 @@ def vote(message):
     return
 
 
-def seen(message):
+def cmd_seen(message):
+    """
+    **!seen**
+
+    Usage:
+      !seen <user>
+
+    Example:
+      !lookup fura barumaru
+
+    Checks to see the last time a particular user was
+    seen online by ti-bot.
+
+    *The user's name must be entered in full.*
+    """
     user = message.content[len("!seen "):].strip()
     key = user.lower()
     if not user:
@@ -275,6 +355,36 @@ def seen(message):
         " was last seen **%.0f days, %.0f hours, %.0f minutes, and %.0f seconds ago**." \
         % (days, hours, minutes, seconds))
     return
+
+
+def main():
+    global handlers
+
+    if len(sys.argv) != 3:
+        print "Usage: python bot.py <email> <password>"
+
+    # Create necessary files for data tracking
+    if not os.path.isfile("boats.dat"):
+        f = open("boats.dat", "w")
+        f.write("{}")
+        f.close()
+
+    if not os.path.isfile("seen.dat"):
+        f = open("seen.dat", "w")
+        f.write("{}")
+        f.close()
+
+    if not handlers:
+        handlers = {}
+        handlers["!test"] = cmd_test
+        handlers["!boat"] = cmd_boat
+        handlers["!help"] = cmd_help
+        handlers["!lookup"] = cmd_lookup
+        handlers["!poll"] = cmd_poll
+        handlers["!vote"] = cmd_vote
+        
+    client.login(sys.argv[1], sys.argv[2])
+    client.run()
 
 
 if __name__ == '__main__':
