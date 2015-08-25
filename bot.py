@@ -2,12 +2,14 @@ import discord, sys, os, json, urbandict, time
 
 
 client = discord.Client()
+
+# spacing sucks because it's not a monospace font
 HELP_MSG = """\
-Ti Discord Bot Functions:
-!help               - displays this information
-!boat <thing>++/--  - upboat or downboat a thing (useless)
-!lookup <word>      - look up a word in the Merriam-Webster dictionary for you illiterate plebs
-!seen <user>        - check to see when the user was last online
+**Ti Discord Bot Functions:**
+!help                                 - displays this information
+!boat <thing>++/--     - upboat or downboat a thing (useless)
+!lookup <word>            - look up a word in the Merriam-Webster dictionary for you illiterate plebs
+!seen <user>                 - check to see when the user was last online
 """ 
 
 
