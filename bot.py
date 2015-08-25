@@ -77,7 +77,7 @@ def boat(message):
     # !boat <thing> - list the boat of the thing
     if op not in ("++", "--"):
         if kthing in data:
-            client.send_message(message.channel, thing[0] + thing[1:] + " has " + str(data[kthing]) + " boats.")
+            client.send_message(message.channel, thing[0].upper() + thing[1:] + " has " + str(data[kthing]) + " boats.")
         return
 
     thing = thing[:-2]
