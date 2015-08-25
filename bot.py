@@ -54,7 +54,7 @@ def boat(message):
 
     # !boat - list all boats
     if not thing:
-        s = "All of these things have boats:"
+        s = "All of these things have boats:\n"
         for k in data:
             s = s + k + ": " + str(data[k]) + "\n"
         client.send_message(message.channel, s)
