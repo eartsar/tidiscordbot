@@ -195,7 +195,7 @@ def seen(message):
     seconds = tdiff % 60
     client.send_message(message.channel, user[0].upper() + user[1:] + \
         " was last seen **%s days, %s hours, %s minutes, and %s seconds ago**." \
-        % str(days), str(hours), str(minutes), str(seconds))
+        % (str(days), str(hours), str(minutes), str(seconds)))
     return
 
 
