@@ -21,7 +21,7 @@ def on_message(message):
     if message.content.startswith('!test'):
         client.send_message(message.channel, 'Ti Discord Bot is up and running!')
     elif message.content.startswith("!boat"):
-        boat(message.content)
+        boat(message)
     elif message.content.startswith("!help"):
         client.send_message(message.channel, HELP_MSG)
 
@@ -36,6 +36,7 @@ def on_ready():
 
 
 def boat(message):
+    content = message.content
     # create the file if it doesn't exist
     if not os.path.isfile("boats.dat"):
         f = open("boats.dat", "w")
@@ -47,7 +48,7 @@ def boat(message):
     data = json.loads(f.read())
     f.close()
 
-    thing = message[len("!boat "):].strip()
+    thing = content[len("!boat "):].strip()
     # use lower for key access
     kthing = thing.lower()
 
