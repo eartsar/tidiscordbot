@@ -1,11 +1,12 @@
-import discord, sys, os, json
+import discord, sys, os, json, urbandict
 
 
 client = discord.Client()
 HELP_MSG = """\
 Ti Discord Bot Functions:
 !help               - displays this information
-!boat <thing>++/--   - upboat or downboat a thing (useless)
+!boat <thing>++/--  - upboat or downboat a thing (useless)
+!lookup <word>      - look up a word in the Merriam-Webster dictionary for you illiterate plebs
 """ 
 
 
@@ -24,6 +25,8 @@ def on_message(message):
         boat(message)
     elif message.content.startswith("!help"):
         client.send_message(message.channel, HELP_MSG)
+    elif message.content.startswith("!lookup"):
+        lookup(message)
 
 
 @client.event
@@ -36,6 +39,7 @@ def on_ready():
 
 
 def boat(message):
+    """Manage upboats/downboats of things. Stored in flat json file: boats.dat"""
     content = message.content
     # create the file if it doesn't exist
     if not os.path.isfile("boats.dat"):
@@ -104,13 +108,26 @@ def boat(message):
     return
 
 
+def lookup(message):
+    """Lookup a word via urbandictionary."""
+    word = message.content[len("!boat "):].strip()
+    if not word:
+        return
 
+    response = ""
+    entry = urbandict.define(word)
 
+    if "There aren't any definitions for " in entry[0]["def"]:
+        return
 
+    response = "**" + entry["word"] + "**\n"
+    response += entry["def"] + "\n"
+    if entry["example"]:
+        response += "*" + entry["example"] + "*"
 
-
-
-
+    if response:
+        client.send_message(message.channel, response)
+    return
 
 
 
