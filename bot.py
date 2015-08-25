@@ -54,9 +54,17 @@ def boat(message):
 
     # !boat - list all boats
     if not thing:
-        s = "All of these things have boats:\n"
-        for k in data:
+        bottom_keys = sorted(data, key=data.get)
+        top_keys = bottom_keys[::-1]
+
+        s = "Top 5 upboated things:\n"
+        for k in top_keys:
             s = s + k.lower() + ": " + str(data[k]) + "\n"
+
+        s = "Bottom 5 downboated things:\n"
+        for k in bottom_keys:
+            s = s + k.lower() + ": " + str(data[k]) + "\n"
+        
         client.send_message(message.channel, s)
         return
     
