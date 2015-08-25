@@ -110,7 +110,7 @@ def boat(message):
 
 def lookup(message):
     """Lookup a word via urbandictionary."""
-    word = message.content[len("!boat "):].strip()
+    word = message.content[len("!lookup "):].strip()
     if not word:
         return
 
