@@ -170,7 +170,7 @@ def seen(message):
 
     for member in message.channel.server.members:
         if member.name.lower() == key:
-            client.send_message(message.channel, user + " is currently online.")
+            client.send_message(message.channel, user + " is currently **online**.")
 
             if key not in data:
                 f = open("seen.dat", "r")
@@ -182,6 +182,7 @@ def seen(message):
                 f = open("seen.dat", "w")
                 f.write(json.dumps(data))
                 f.close()
+            return
 
     if key not in data:
         client.send_message(message.channel, "I haven't seen " + user + " before.")
