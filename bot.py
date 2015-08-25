@@ -193,7 +193,7 @@ def poll(message):
                 client.send_message(message.channel, "The poll is open for another " + str(currentPoll.time_left()) + ".")
         return
 
-    if poll:
+    if currentPoll:
         client.send_message(message.channel, "A poll is already underway. Let that one finish first before starting another.")
         return
 
