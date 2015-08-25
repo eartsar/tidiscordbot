@@ -58,7 +58,8 @@ def on_status(server, user, status, gameid):
     data = json.loads(f.read())
     f.close()
 
-    data[user] = time.time()
+    data[user.name] = time.time()
+    print user.name + " seen - logged at " + str(data[user.name])
 
     f = open("seen.dat", "w")
     f.write(json.dumps(data))
@@ -162,26 +163,40 @@ def seen(message):
     data = json.loads(f.read())
     f.close()
 
+    if isinstance(message.channel, discord.channel.PrivateChannel):
+        client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        return
+
+
     for member in message.channel.server.members:
         if member.name.lower() == key:
             client.send_message(message.channel, user + " is currently online.")
-            return
+
+            if key not in data:
+                f = open("seen.dat", "r")
+                data = json.loads(f.read())
+                f.close()
+
+                data[user] = time.time()
+
+                f = open("seen.dat", "w")
+                f.write(json.dumps(data))
+                f.close()
 
     if key not in data:
         client.send_message(message.channel, "I haven't seen " + user + " before.")
-    else:
-        t = data[key]
-        tdiff = time.time() - t
-        days = tdiff // 86400
-        hours = tdiff // 3600 % 24
-        minutes = tdiff // 60 % 60
-        seconds = tdiff % 60
-        client.send_message(message.channel, user[0].upper() + user[1:] + \
-            " was last seen **%s days, %s hours, %s minutes, and %s seconds ago**." \
-            % str(days), str(hours), str(minutes), str(seconds))
+        return
+
+    t = data[key]
+    tdiff = time.time() - t
+    days = tdiff // 86400
+    hours = tdiff // 3600 % 24
+    minutes = tdiff // 60 % 60
+    seconds = tdiff % 60
+    client.send_message(message.channel, user[0].upper() + user[1:] + \
+        " was last seen **%s days, %s hours, %s minutes, and %s seconds ago**." \
+        % str(days), str(hours), str(minutes), str(seconds))
     return
-
-
 
 
 if __name__ == '__main__':
