@@ -1,4 +1,4 @@
-import discord, sys, os, json, urbandict, time, poll
+import discord, sys, os, json, urbandict, time, tipoll
 
 
 client = discord.Client()
@@ -15,7 +15,7 @@ HELP_MSG = """\
     !vote <choice>                - Votes in a poll 
 """ 
 
-poll = None
+currentPoll = None
 
 
 def main():
@@ -166,26 +166,31 @@ def lookup(message):
 
 
 def poll(message):
-    rest = message.content[len("!poll "):].strip()
+    global currentPoll
+    opts = message.content[len("!poll "):].strip()
+
+    if isinstance(message.channel, discord.channel.PrivateChannel):
+        client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        return
     
     # !poll - display the poll
     if not opts:
-        if poll:
-            client.send_message(message.channel, poll.pretty_print())
+        if currentPoll:
+            client.send_message(message.channel, currentPoll.pretty_print())
         else:
             client.send_message(message.channel, "There is no poll underway.")
         return
 
     # !poll close - close the poll
     if opts == "close":
-        if not poll:
+        if not currentPoll:
             client.send_message(message.channel, "There is no poll underway.")
         else:
-            if poll.can_close(message.author):
-                client.send_message(message.channel, "**Poll closed!**\n" + poll.pretty_print())
-                poll = None
+            if currentPoll.can_close(message.author):
+                client.send_message(message.channel, "**Poll closed!**\n" + currentPoll.pretty_print())
+                currentPoll = None
             else:
-                client.send_message(message.channel, "The poll is open for another " + str(poll.time_left()) + "."
+                client.send_message(message.channel, "The poll is open for another " + str(currentPoll.time_left()) + ".")
         return
 
     if poll:
@@ -193,15 +198,32 @@ def poll(message):
         return
 
     # !poll question;choice;choice...
-    opts = rest.split(";")
+    opts = opts.split(";")
     if len(opts) < 3:
         return
+
+    currentPoll = tipoll.Poll(message.author, opts[0], opts[1:])
+    s = "**" + message.author[0].upper() + message.author[1:] + " starts a poll.**\n" + currentPoll.pretty_print()
+    client.send_message(message.channel, s)
 
 
 def vote(message):
     choice = message.content[len("!vote "):].strip()
+    if not choice:
+        return
+
+    if isinstance(message.channel, discord.channel.PrivateChannel):
+        client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        return
+
+    if choice not in "01234566789":
+        return
     if not poll:
         client.send_message(message.channel, "There is no poll underway.")
+    choice = int(choice)
+    currentPoll.vote(message.author, choice)
+    client.send_message(message.channel, message.author.name[0].upper() + message.author.name[1:] + \
+        " casts a vote for **" + str(choice) + "**.")
     return
 
 
