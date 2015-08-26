@@ -475,7 +475,7 @@ def cmd_flip(message):
 
     *Also see* ***!roll*** and ***!random*** *for more random games.*
     """
-    opt = message.content[len("!roll "):].strip()
+    opt = message.content[len("!flip "):].strip()
 
     if opt:
         return
@@ -500,7 +500,7 @@ def cmd_random(message):
 
     *Also see* ***!roll*** and ***!flip*** *for more random games.*
     """
-    opt = message.content[len("!roll "):].strip()
+    opt = message.content[len("!random "):].strip()
 
     if opt:
         return
