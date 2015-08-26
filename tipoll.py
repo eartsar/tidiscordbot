@@ -34,7 +34,7 @@ class Poll(object):
     def pretty_print(self):
         s = self.author.name + "'s poll: **" + self.question + "**\n"
         for i in range(len(self.options)):
-            vote_template = "\t**%d votes** *(!vote %d)*\t%s\n" % (self.tally[i], str(i+1), self.options[1])
+            vote_template = "\t**%s votes** *(!vote %s)*\t%s\n" % (self.tally[i], str(i+1), self.options[1])
             s += vote_template
             #s += "  *" + self.options[i] + "*  (!vote " + str(i + 1) + ")  **" + str(self.tally[i]) + " votes**\n"
         return s
