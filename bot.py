@@ -79,7 +79,7 @@ def cmd_help(message):
     ignores = ["!gifcat", "!upboat", "!downboat"]
 
     help_msg = "**Ti Discord Bot Functions:**\n" + \
-        ", ".join(sorted(filter(lambda x: x not in ignores, handlers.keys())) + \
+        ", ".join(sorted(filter(lambda x: x not in ignores, handlers.keys()))) + \
         "\nType !help <command> in a PM to **ti-bot** for more information on syntax and functions."
 
     cmd = message.content[len("!help "):].strip()
