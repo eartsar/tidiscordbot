@@ -27,7 +27,7 @@ def on_message(message):
         return
 
     # for non PMs, track spammage
-    if not isinstance(message.channel, discord.channel.PrivateChannel):
+    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.content.startswith("!"):
         proceed = trafficLight.log(client, message.author)
         if not proceed:
             return
