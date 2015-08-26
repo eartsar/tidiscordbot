@@ -1,7 +1,8 @@
-import discord, sys, os, json, random, urbandict, time, tipoll, requests
+import discord, sys, os, json, random, urbandict, time, tipoll, requests, configparser
 
 
 CAT_API = "http://thecatapi.com/api/images/get"
+CAT_API_KEY = ""
 
 client = discord.Client()
 currentPoll = None
@@ -295,8 +296,12 @@ def cmd_lookup(message):
     if entry["example"].strip() != "":
         response += "*" + entry["example"].strip() + "*"
 
+    # TODO: Need to make sure we're not sending unicode that the API can't handle here
     if response:
-        client.send_message(message.channel, response)
+        try:
+            client.send_message(message.channel, response)
+        except:
+            print "Unicode error in !lookup()"
     return
 
 
@@ -557,21 +562,32 @@ def cmd_random(message):
 
 
 def main():
-    global handlers, alaises
+    global handlers, alaises, CAT_API_KEY
 
-    if len(sys.argv) != 3:
-        print "Usage: python bot.py <email> <password>"
+    config = configparser.ConfigParser()
+
+    if not os.path.isfile("config.txt"):
+        print "No config file found. Generating one - please fill out information in " + os.path.join(os.getcwd(), "config.txt")
+        with open('config.txt', 'w') as configfile:
+            config['Discord'] = {'email': 'REPLACE_ME', 'password': 'hunter2'}
+            config['TheCatAPI.com'] = {'api_key': 'REPLACE_ME'}
+            config.write(configfile)
+        return
+
+    # load in configuration information
+    config.read('config.txt')
+    email = config['Discord']['email']
+    password = config['Discord']['password']
+    CAT_API_KEY = config['TheCatAPI.com']['api_key']
 
     # Create necessary files for data tracking
     if not os.path.isfile("boats.dat"):
-        f = open("boats.dat", "w")
-        f.write("{}")
-        f.close()
+        with open('boats.dat', 'w') as f:
+            f.write("{}")
 
     if not os.path.isfile("seen.dat"):
-        f = open("seen.dat", "w")
-        f.write("{}")
-        f.close()
+        with open('seen.dat', 'w') as f:
+            f.write("{}")
 
     if not handlers:
         handlers = {}
@@ -593,7 +609,7 @@ def main():
         handlers["!gifcat"] = cmd_catgif
 
 
-    client.login(sys.argv[1], sys.argv[2])
+    client.login(email, password)
     client.run()
 
 
