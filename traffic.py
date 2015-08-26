@@ -43,7 +43,7 @@ class TrafficLight(object):
         if len(self.history[user]) >= LIMITER_COUNT:
             self.stopped[user] = time.time()
             return RED_LIGHT
-        elif len(self.history[user]) >= WARNING_COUNT::
+        elif len(self.history[user]) >= WARNING_COUNT:
             return YELLOW_LIGHT
         else:
             return GREEN_LIGHT
