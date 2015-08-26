@@ -471,7 +471,7 @@ def cmd_roll(message):
 
     Rolls N dice of S sides. Defaults to 1d20.
 
-    *Also see* ***!flip*** and ***!random*** *for more random games.*
+    *Also see* ***!coinflip*** and ***!random*** *for more random games.*
     """
     opt = message.content[len("!roll "):].strip()
 
@@ -510,16 +510,16 @@ def cmd_roll(message):
 
 def cmd_flip(message):
     """
-    **!flip**
+    **!coinflip**
 
     Usage:
-      !flip
+      !coinflip
 
     Flips a two sided coin.
 
     *Also see* ***!roll*** and ***!random*** *for more random games.*
     """
-    opt = message.content[len("!flip "):].strip()
+    opt = message.content[len("!coinflip "):].strip()
 
     if opt:
         return
@@ -542,7 +542,7 @@ def cmd_random(message):
 
     Rolls between 1 and 99, Final Fantasy style.
 
-    *Also see* ***!roll*** and ***!flip*** *for more random games.*
+    *Also see* ***!roll*** and ***!coinflip*** *for more random games.*
     """
     opt = message.content[len("!random "):].strip()
 
@@ -589,7 +589,7 @@ def main():
 
         handlers["!random"] = cmd_random
         handlers["!roll"] = cmd_roll
-        handlers["!flip"] = cmd_flip
+        handlers["!coinflip"] = cmd_flip
         handlers["!gifcat"] = cmd_catgif
 
 
