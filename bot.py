@@ -1,4 +1,4 @@
-import discord, sys, os, json, urbandict, time, tipoll
+import discord, sys, os, json, random, urbandict, time, tipoll
 
 
 client = discord.Client()
@@ -415,6 +415,103 @@ def cmd_seen(message):
     return
 
 
+def cmd_roll(message):
+    """
+    **!roll**
+
+    Usage:
+      !roll
+      !roll <n>d<s>
+
+    Example:
+      !roll
+      !roll 2d6
+
+    Rolls N dice of S sides. Defaults to 1d20.
+
+    *Also see* ***!flip*** and ***!random*** *for more random games.*
+    """
+    opt = message.content[len("!roll "):].strip()
+
+    num = None
+    sides = None
+    
+    # same as !roll 1d20
+    if not opt:
+        num = 1
+        sides = 20
+    elif 'd' not in opt:
+        return
+    else:
+        tokens = opt.split('d')
+        num, sides = tokens[0], tokens[1]
+        try:
+            num = int(num)
+            sides = int(sides)
+        except:
+            return
+        if num < 1 or num > 10:
+            return
+        if sides < 3 or sides > 100:
+            return
+
+    results = [0 for _ in range(num)]
+    for i in range(num):
+        results[i] = random.randint(1, sides)
+
+    s = "*" + message.author.name + " rolls* ***" + opt + "!***\n    " + ", ".join(results)
+    client.send_message(message.channel, s)
+    return
+
+
+def cmd_flip(message):
+    """
+    **!flip**
+
+    Usage:
+      !flip
+
+    Flips a two sided coin.
+
+    *Also see* ***!roll*** and ***!random*** *for more random games.*
+    """
+    opt = message.content[len("!roll "):].strip()
+
+    if opt:
+        return
+
+    result = "heads"
+    if random.randint(0, 1) == 1:
+        result = "tails"
+
+    s = "*" + message.author.name + " flips a coin...* ***" + result + "!***"
+    client.send_message(message.channel, s)
+    return
+
+
+def cmd_random(message):
+    """
+    **!random**
+
+    Usage:
+      !random
+
+    Rolls between 1 and 99, Final Fantasy style.
+
+    *Also see* ***!roll*** and ***!flip*** *for more random games.*
+    """
+    opt = message.content[len("!roll "):].strip()
+
+    if opt:
+        return
+
+    result = random.randint(1, 99)
+
+    s = "*Dice roll! " + message.author.name + " rolls a* ***" + result + "!***"
+    client.send_message(message.channel, s)
+    return
+
+
 def main():
     global handlers
 
@@ -443,6 +540,10 @@ def main():
         handlers["!seen"] = cmd_seen
         handlers["!test"] = cmd_test
         handlers["!vote"] = cmd_vote
+
+        handlers["!random"] = cmd_random
+        handlers["!roll"] = cmd_roll
+        handlers["!flip"] = cmd_flip
         
     client.login(sys.argv[1], sys.argv[2])
     client.run()
