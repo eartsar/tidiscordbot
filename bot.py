@@ -581,7 +581,7 @@ def main():
     CAT_API_KEY = config['TheCatAPI.com']['api_key']
 
     for arg in [email, password, CAT_API_KEY]:
-        if arg == "REPLACE_ME"
+        if arg == "REPLACE_ME":
             print "config.txt has not been fully completed. Fully fill out config.txt and re-run."
             return
 
