@@ -34,16 +34,18 @@ def on_ready():
 @client.event
 def on_status(server, user, status, gameid):
     # update the last seen data file
+    print "!seen tracking - " + user.name + " - status: " + status
+
     f = open("seen.dat", "r")
     data = json.loads(f.read())
     f.close()
 
     data[user.name.lower()] = time.time()
-    print user.name + " seen - logged at " + str(data[user.name])
 
     f = open("seen.dat", "w")
     f.write(json.dumps(data))
     f.close()
+    print "    seen.dat file updated"
 
 
 def cmd_test(message):
