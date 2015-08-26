@@ -507,7 +507,7 @@ def cmd_random(message):
 
     result = random.randint(1, 99)
 
-    s = "*Dice roll! " + message.author.name + " rolls a* ***" + str(result) + "!***"
+    s = "*Dice roll! " + message.author.name + " rolls* ***" + str(result) + "!***"
     client.send_message(message.channel, s)
     return
 
