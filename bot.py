@@ -126,7 +126,7 @@ def cmd_catgif(message):
 
 def _cmd_cat(message, file_type="png"):
     """Do work function for cats."""
-    r = requests.get(CAT_API, {"format": "src", "type": file_type, "size": "small"})
+    r = requests.get(CAT_API, {"api_key": CAT_API_KEY, "format": "src", "type": file_type, "size": "small"})
     client.send_message(message.channel, r.url)
     return
 
