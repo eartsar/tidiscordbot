@@ -569,7 +569,7 @@ def main():
     if not os.path.isfile("config.txt"):
         print "No config file found. Generating one - please fill out information in " + os.path.join(os.getcwd(), "config.txt")
         with open('config.txt', 'w') as configfile:
-            config['Discord'] = {'email': 'REPLACE_ME', 'password': 'hunter2'}
+            config['Discord'] = {'email': 'REPLACE_ME', 'password': 'REPLACE_ME'}
             config['TheCatAPI.com'] = {'api_key': 'REPLACE_ME'}
             config.write(configfile)
         return
@@ -579,6 +579,11 @@ def main():
     email = config['Discord']['email']
     password = config['Discord']['password']
     CAT_API_KEY = config['TheCatAPI.com']['api_key']
+
+    for arg in [email, password, CAT_API_KEY]:
+        if arg == "REPLACE_ME":
+            print arg + " value not changed from default. Please complete config.txt"
+            return
 
     # Create necessary files for data tracking
     if not os.path.isfile("boats.dat"):
