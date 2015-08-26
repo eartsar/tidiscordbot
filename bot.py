@@ -253,7 +253,8 @@ def cmd_poll(message):
         return
 
     # !poll question;choice;choice...
-    opts = opts.split(";")
+    opts = [ vote_text.strip() for vote_text in opts.split(";") if vote_text != '' ]
+
     if len(opts) < 3 or len(opts) > 9:
         return
 
