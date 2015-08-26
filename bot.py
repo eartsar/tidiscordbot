@@ -145,6 +145,12 @@ def cmd_boat(message):
         return
 
     thing = thing[:-2]
+    _cmd_boat(message, thing, op, data)
+    return
+
+
+def _cmd_boat(message, thing, op, data):
+    """Does the actual incrementing of the boats, and prints stuff."""
     kthing = thing.lower()
     sop = ""
     if op == "++":
@@ -160,11 +166,60 @@ def cmd_boat(message):
         else:
             data[kthing] = data[kthing] - 1
 
-
     client.send_message(message.channel, sop + " for " + thing + "! " + thing[0].upper() + thing[1:] + " now has " + str(data[kthing]) + " boats.")
     f = open("boats.dat", "w")
     f.write(json.dumps(data))
     f.close()
+    return
+
+
+def cmd_upboat(message):
+    """
+    **!upboat**
+
+    Usage:
+      !upboat <thing>
+
+    Example:
+      !upboat fura
+    
+    Shorthand for **!boat <thing>++**
+    """
+    cmd_shortboat(message)
+
+
+def cmd_downboat(message):
+    """
+    **!downboat**
+
+    Usage:
+      !downboat <thing>
+
+    Example:
+      !downboat fura
+    
+    Shorthand for **!boat <thing>--**
+    """
+    cmd_shortboat(message)
+
+
+def cmd_shortboat(message):
+    """Do work function of upboat/downboat shorthand functions."""
+    tokens = message.content.split(" ")
+    cmd = tokens[0]
+    thing = message.content[len(cmd):].strip()
+    if not thing:
+        return
+    f = open("boats.dat", "r")
+    data = json.loads(f.read())
+    f.close()
+
+    op = ""
+    if cmd == "!upboat":
+        op = "++"
+    else:
+        op = "--"
+    _cmd_boat(message, thing, op, data)
     return
 
 
@@ -378,6 +433,8 @@ def main():
     if not handlers:
         handlers = {}
         handlers["!boat"] = cmd_boat
+        handlers["!upboat"] = cmd_upboat
+        handlers["!downboat"] = cmd_downboat
         handlers["!help"] = cmd_help
         handlers["!lookup"] = cmd_lookup
         handlers["!poll"] = cmd_poll
