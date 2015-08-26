@@ -1,7 +1,10 @@
-import time
+﻿import time
 
 class Poll(object):
     """Object that represents a poll"""
+
+    VOTE_TEMPLATE = "    **{vote_num} votes** (!vote{vote_id})    *{vote_msg}*\n"
+
     def __init__(self, author, question, options):
         self.author = author
         self.question = question
@@ -32,9 +35,11 @@ class Poll(object):
 
 
     def pretty_print(self):
-        s = self.author.name + "'s poll: **" + self.question + "**\n"
+        s = "{name}'s poll: **{question}**\n".format(name=self.author.name, question=self.question)
+
         for i in range(len(self.options)):
-            vote_template = "    **%s votes** (!vote %s)    *%s*\n" % (self.tally[i], str(i+1), self.options[i])
-            s += vote_template
-            #s += "  *" + self.options[i] + "*  (!vote " + str(i + 1) + ")  **" + str(self.tally[i]) + " votes**\n"
+            s += self.VOTE_TEMPLATE.format(vote_num = self.tally[i],
+                                           vote_id  = str(i+1),
+                                           vote_msg = self.options[i])
+            
         return s

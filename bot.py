@@ -1,4 +1,16 @@
-import discord, sys, os, json, random, urbandict, time, tipoll, requests, configparser
+﻿import sys
+import os
+import json
+import random
+import urbandict
+import time
+import tipoll
+import requests
+from discordbot import DiscordBot 
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 
 CAT_API = "http://thecatapi.com/api/images/get"
@@ -28,8 +40,7 @@ def on_message(message):
 
 @client.event
 def on_ready():
-    print('Logged in as')
-    print(client.user.name)
+    print('Logged in as %s' % client.user.name)
     print(client.user.id)
     print('------')
 
@@ -45,9 +56,9 @@ def on_status(server, user, status, gameid):
 
     data[user.name.lower()] = time.time()
 
-    f = open("seen.dat", "w")
-    f.write(json.dumps(data))
-    f.close()
+    with open("seen.dat", "w") as f:
+        f.write(json.dumps(data))
+    
     print "    seen.dat file updated"
 
 
@@ -153,9 +164,8 @@ def cmd_boat(message):
     content = message.content
 
     # load the data as json
-    f = open("boats.dat", "r")
-    data = json.loads(f.read())
-    f.close()
+    with open("boats.dat", "r") as f:
+        data = json.loads(f.read())
 
     thing = content[len("!boat "):].strip()
     # use lower for key access
@@ -212,9 +222,9 @@ def _cmd_boat(message, thing, op, data):
             data[kthing] = data[kthing] - 1
 
     client.send_message(message.channel, sop + " for " + thing + "! " + thing[0].upper() + thing[1:] + " now has " + str(data[kthing]) + " boats.")
-    f = open("boats.dat", "w")
-    f.write(json.dumps(data))
-    f.close()
+    with open("boats.dat", "w") as f:
+        f.write(json.dumps(data))
+    
     return
 
 

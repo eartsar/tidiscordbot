@@ -3,4 +3,5 @@
 *.sln
 *.suo
 *.pyproj
+env/
 config.txt
