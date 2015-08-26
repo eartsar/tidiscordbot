@@ -581,8 +581,9 @@ def main():
     CAT_API_KEY = config['TheCatAPI.com']['api_key']
 
     for arg in [email, password, CAT_API_KEY]:
-        print "config.txt has not been fully completed. Fully fill out config.txt and re-run."
-        return
+        if arg == "REPLACE_ME"
+            print "config.txt has not been fully completed. Fully fill out config.txt and re-run."
+            return
 
     # Create necessary files for data tracking
     if not os.path.isfile("boats.dat"):
