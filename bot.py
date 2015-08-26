@@ -47,7 +47,7 @@ def on_status(server, user, status, gameid):
     data = json.loads(f.read())
     f.close()
 
-    data[user.name] = time.time()
+    data[user.name.lower()] = time.time()
     print user.name + " seen - logged at " + str(data[user.name])
 
     f = open("seen.dat", "w")
@@ -379,7 +379,6 @@ def cmd_seen(message):
     if isinstance(message.channel, discord.channel.PrivateChannel):
         client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
-
 
     for member in message.channel.server.members:
         if member.name.lower() == key:
