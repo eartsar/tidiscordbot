@@ -1,11 +1,20 @@
-import discord, sys, os, json, random, urbandict, time, tipoll, requests, configparser
+import discord, sys, os, json, random, urbandict, time, tipoll, requests, configparser, traffic
 
 
-CAT_API = "http://thecatapi.com/api/images/get"
+# TheCatAPI.com information
+CAT_API_URL = "http://thecatapi.com/api/images/get"
 CAT_API_KEY = ""
 
+# The actual API client that deals with Discord events.
 client = discord.Client()
+
+# Object to manage poll tracking
 currentPoll = None
+
+# Object to manage spam tracking
+trafficLight = traffic.TrafficLight()
+
+# Dictionary of "!function" to cmd_function(message) handlers.
 handlers = None
 
 
@@ -15,6 +24,9 @@ def on_message(message):
 
     if not handlers:
         print "on_message abort - handlers dict not populated"
+        return
+
+    if not trafficLight.log(client, message.author):
         return
 
     tokens = message.content.split(" ")
@@ -126,7 +138,7 @@ def cmd_catgif(message):
 
 def _cmd_cat(message, file_type="png"):
     """Do work function for cats."""
-    r = requests.get(CAT_API, {"api_key": CAT_API_KEY, "format": "src", "type": file_type, "size": "small"})
+    r = requests.get(CAT_API_URL, {"api_key": CAT_API_KEY, "format": "src", "type": file_type, "size": "small"})
     client.send_message(message.channel, r.url)
     return
 
@@ -564,8 +576,10 @@ def cmd_random(message):
 def main():
     global handlers, alaises, CAT_API_KEY
 
+    # Deal with the configuration file.
     config = configparser.ConfigParser()
 
+    # Create it, if it doesn't exist.
     if not os.path.isfile("config.txt"):
         print "No config file found. Generating one - please fill out information in " + os.path.join(os.getcwd(), "config.txt")
         with open('config.txt', 'w') as configfile:
@@ -574,26 +588,30 @@ def main():
             config.write(configfile)
         return
 
-    # load in configuration information
+    # Load in configuration information
     config.read('config.txt')
     email = config['Discord']['email']
     password = config['Discord']['password']
     CAT_API_KEY = config['TheCatAPI.com']['api_key']
 
+    # Prevent execution if the configuration file isn't complete
     for arg in [email, password, CAT_API_KEY]:
         if arg == "REPLACE_ME":
             print "config.txt has not been fully completed. Fully fill out config.txt and re-run."
             return
 
     # Create necessary files for data tracking
+    # Boats (!boat)
     if not os.path.isfile("boats.dat"):
         with open('boats.dat', 'w') as f:
             f.write("{}")
 
+    # Seen logs (!seen)
     if not os.path.isfile("seen.dat"):
         with open('seen.dat', 'w') as f:
             f.write("{}")
 
+    # Populate the handler dictionary with function references.
     if not handlers:
         handlers = {}
         handlers["!boat"] = cmd_boat
@@ -613,7 +631,7 @@ def main():
         handlers["!coinflip"] = cmd_flip
         handlers["!gifcat"] = cmd_catgif
 
-
+    # Connect to Discord, and begin listening to events.
     client.login(email, password)
     client.run()
 
