@@ -484,7 +484,7 @@ def cmd_flip(message):
     if random.randint(0, 1) == 1:
         result = "tails"
 
-    s = "*" + message.author.name + " flips a coin...* ***" + result + "!***"
+    s = "*" + message.author.name + " flips a coin...* ***" + str(result) + "!***"
     client.send_message(message.channel, s)
     return
 
@@ -507,7 +507,7 @@ def cmd_random(message):
 
     result = random.randint(1, 99)
 
-    s = "*Dice roll! " + message.author.name + " rolls a* ***" + result + "!***"
+    s = "*Dice roll! " + message.author.name + " rolls a* ***" + str(result) + "!***"
     client.send_message(message.channel, s)
     return
 
