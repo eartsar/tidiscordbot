@@ -459,6 +459,7 @@ def cmd_roll(message):
     for i in range(num):
         results[i] = random.randint(1, sides)
 
+    results = [str(_) for _ in results]
     s = "*" + message.author.name + " rolls* ***" + opt + "!***\n    " + ", ".join(results)
     client.send_message(message.channel, s)
     return
