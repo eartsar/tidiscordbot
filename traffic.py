@@ -29,21 +29,21 @@ class TrafficLight(object):
 
 
     def _update(self, user):
-        if user not in self.history:
-            self.history[user] = []
+        if user.id not in self.history:
+            self.history[user.id] = []
         
-        if user in self.stopped:
-            if (time.time() - self.stopped[user]) > REDLIGHT_TIME:
-                del self.stopped[user]
-                self.history[user] = []
+        if user.id in self.stopped:
+            if (time.time() - self.stopped[user.id]) > REDLIGHT_TIME:
+                del self.stopped[user.id]
+                self.history[user.id] = []
             else:
                 return STILL_RED_LIGHT
 
-        self.history[user] = filter(lambda x: (time.time() - x) < LIMITER_WINDOW, self.history[user])
-        if len(self.history[user]) >= LIMITER_COUNT:
-            self.stopped[user] = time.time()
+        self.history[user.id] = filter(lambda x: (time.time() - x) < LIMITER_WINDOW, self.history[user.id])
+        if len(self.history[user.id]) >= LIMITER_COUNT:
+            self.stopped[user.id] = time.time()
             return RED_LIGHT
-        elif len(self.history[user]) >= WARNING_COUNT:
+        elif len(self.history[user.id]) >= WARNING_COUNT:
             return YELLOW_LIGHT
         else:
             return GREEN_LIGHT
@@ -52,10 +52,10 @@ class TrafficLight(object):
     def log(self, client, user):
         status = self._update(user)
         if status == GREEN_LIGHT:
-            self.history[user].append(time.time())
+            self.history[user.id].append(time.time())
             return True
         elif status == YELLOW_LIGHT:
-            self.history[user].append(time.time())
+            self.history[user.id].append(time.time())
             client.send_message(user, "You are spamming #general with too many bot commands! **Slow it down, cowboy!**")
             return True
         elif status == RED_LIGHT:
