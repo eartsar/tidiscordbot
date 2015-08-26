@@ -250,7 +250,7 @@ def cmd_lookup(message):
 
     response = "**" + entry["word"].strip() + "**\n"
     response += entry["def"].strip() + "\n"
-    if entry["example"]:
+    if entry["example"] != "":
         response += "*" + entry["example"].strip() + "*"
 
     if response:
