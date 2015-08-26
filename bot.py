@@ -93,7 +93,7 @@ def cmd_help(message):
 
 def cmd_cat(message):
     """
-    **!cat*
+    **!cat**
 
     Usage:
       !cat
@@ -109,7 +109,7 @@ def cmd_cat(message):
 
 def cmd_catgif(message):
     """
-    **!catgif*
+    **!catgif**
 
     Usage:
       !catgif
