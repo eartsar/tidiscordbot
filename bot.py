@@ -440,6 +440,7 @@ def cmd_roll(message):
     if not opt:
         num = 1
         sides = 20
+        opt = "1d20"
     elif 'd' not in opt:
         return
     else:
@@ -460,7 +461,7 @@ def cmd_roll(message):
         results[i] = random.randint(1, sides)
 
     results = [str(_) for _ in results]
-    s = "*" + message.author.name + " rolls* ***" + opt + "!***\n    " + ", ".join(results)
+    s = "*Dice roll! " + message.author.name + " rolls* ***" + opt + "!***\n    " + ", ".join(results)
     client.send_message(message.channel, s)
     return
 
