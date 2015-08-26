@@ -104,6 +104,8 @@ def cmd_boat(message):
     be *anything*. Not specifying a thing will show the top 5 upboated and 
     bottom 5 downboated things. Specifying a thing, but no ++/-- operation 
     will display that thing's boat count.
+
+    ***!upboat*** *and* ***!downboat*** *are shorthands for this command.*
     """
     content = message.content
 
