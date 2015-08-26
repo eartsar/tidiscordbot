@@ -1,2 +1,5 @@
 *.dat
 *.pyc
+*.sln
+*.suo
+*.pyproj
