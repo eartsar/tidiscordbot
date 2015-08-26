@@ -1,5 +1,7 @@
-import discord, sys, os, json, random, urbandict, time, tipoll
+import discord, sys, os, json, random, urbandict, time, tipoll, requests
 
+
+CAT_API = "http://thecatapi.com/api/images/get"
 
 client = discord.Client()
 currentPoll = None
@@ -73,8 +75,11 @@ def cmd_help(message):
     """
     global handlers
 
+    # these are aliases or shortcuts, so don't bother listing them
+    ignores = ["!gifcat", "!upboat", "!downboat"]
+
     help_msg = "**Ti Discord Bot Functions:**\n" + \
-        ", ".join(sorted(handlers.keys())) + \
+        ", ".join(sorted(filter(lambda x: x not in ignores, handlers.keys())) + \
         "\nType !help <command> in a PM to **ti-bot** for more information on syntax and functions."
 
     cmd = message.content[len("!help "):].strip()
@@ -83,6 +88,45 @@ def cmd_help(message):
         return
 
     client.send_message(message.author, handlers[cmd].__doc__)
+    return
+
+
+def cmd_cat(message):
+    """
+    **!cat*
+
+    Usage:
+      !cat
+
+    Post a random picture (png format) of a cat. See **!catgif** for moar cats.
+    """
+    opt = content[len("!cat "):].strip()
+    if opt:
+        return
+    _cmd_cat(message)
+    return
+
+
+def cmd_catgif(message):
+    """
+    **!catgif*
+
+    Usage:
+      !catgif
+
+    Post a random picture (gif format) of a cat. See **!cat** for moar cats.
+    """
+    opt = content[len("!catgif "):].strip()
+    if opt:
+        return
+    _cmd_cat(message, file_type="gif")
+    return
+
+
+def _cmd_cat(message, file_type="png"):
+    """Do work function for cats."""
+    r = requests.get(CATAPI, {"format": "src", "type": file_type, "size": "small"})
+    client.send_message(message.channel, r.url)
     return
 
 
@@ -513,7 +557,7 @@ def cmd_random(message):
 
 
 def main():
-    global handlers
+    global handlers, alaises
 
     if len(sys.argv) != 3:
         print "Usage: python bot.py <email> <password>"
@@ -532,6 +576,8 @@ def main():
     if not handlers:
         handlers = {}
         handlers["!boat"] = cmd_boat
+        handlers["!cat"] = cmd_cat
+        handlers["!catgif"] = cmd_catgif
         handlers["!upboat"] = cmd_upboat
         handlers["!downboat"] = cmd_downboat
         handlers["!help"] = cmd_help
@@ -544,7 +590,9 @@ def main():
         handlers["!random"] = cmd_random
         handlers["!roll"] = cmd_roll
         handlers["!flip"] = cmd_flip
-        
+        handlers["!gifcat"] = cmd_catgif
+
+
     client.login(sys.argv[1], sys.argv[2])
     client.run()
 
