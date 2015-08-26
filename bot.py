@@ -344,8 +344,9 @@ def cmd_vote(message):
         client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
 
-    if choice not in "1234566789":
+    if len(choice) != 1 or choice not in "1234566789":
         return
+
     if not currentPoll:
         client.send_message(message.channel, "There is no poll underway.")
     choice = int(choice)
