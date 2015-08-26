@@ -2,15 +2,6 @@ import discord, sys, os, json, random, urbandict, time, tipoll
 
 
 client = discord.Client()
-
-# spacing sucks because it's not a monospace font
-HELP_MSG = """\
-**Ti Discord Bot Functions:**
-!help, !boat, !lookup, !poll, !seen, !test, !vote
-
-Type !help <command> in a PM to **ti-bot** for more information on syntax and functions.
-""" 
-
 currentPoll = None
 handlers = None
 
@@ -79,9 +70,14 @@ def cmd_help(message):
     information.
     """
     global handlers
+
+    help_msg = "**Ti Discord Bot Functions:**\n" + \
+        ", ".join(handlers.keys()) + \
+        "\nType !help <command> in a PM to **ti-bot** for more information on syntax and functions."
+
     cmd = message.content[len("!help "):].strip()
     if not cmd or cmd not in handlers:
-        client.send_message(message.channel, HELP_MSG)
+        client.send_message(message.channel, help_msg)
         return
 
     client.send_message(message.author, handlers[cmd].__doc__)
