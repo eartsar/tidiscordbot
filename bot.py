@@ -26,8 +26,11 @@ def on_message(message):
         print "on_message abort - handlers dict not populated"
         return
 
-    if not trafficLight.log(client, message.author):
-        return
+    # for non PMs, track spammage
+    if not isinstance(message.channel, discord.channel.PrivateChannel):
+        proceed = trafficLight.log(client, message.author)
+        if not proceed:
+            return
 
     tokens = message.content.split(" ")
     cmd_token = tokens[0]
