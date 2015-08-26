@@ -100,7 +100,7 @@ def cmd_cat(message):
 
     Post a random picture (png format) of a cat. See **!catgif** for moar cats.
     """
-    opt = content[len("!cat "):].strip()
+    opt = message.content[len("!cat "):].strip()
     if opt:
         return
     _cmd_cat(message)
@@ -116,7 +116,7 @@ def cmd_catgif(message):
 
     Post a random picture (gif format) of a cat. See **!cat** for moar cats.
     """
-    opt = content[len("!catgif "):].strip()
+    opt = message.content[len("!catgif "):].strip()
     if opt:
         return
     _cmd_cat(message, file_type="gif")
