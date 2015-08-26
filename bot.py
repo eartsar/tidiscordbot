@@ -72,7 +72,7 @@ def cmd_help(message):
     global handlers
 
     help_msg = "**Ti Discord Bot Functions:**\n" + \
-        ", ".join(handlers.keys()) + \
+        ", ".join(sorted(handlers.keys())) + \
         "\nType !help <command> in a PM to **ti-bot** for more information on syntax and functions."
 
     cmd = message.content[len("!help "):].strip()
