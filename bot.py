@@ -1,4 +1,6 @@
 import os
+import sys
+import traceback
 import json
 import random
 import urbandict
@@ -7,6 +9,8 @@ import requests
 import discord
 from ti_poll import Poll
 from ti_traffic import TrafficLight
+from ti_twitter import TwitterPoll
+
 try:
     import configparser
 except ImportError:
@@ -650,12 +654,17 @@ def main():
     # Deal with the configuration file.
     config = configparser.ConfigParser()
 
+    # Default Value
+    DEF_VAL = 'REPLACE_ME'
+
     # Create it, if it doesn't exist.
     if not os.path.isfile("config.txt"):
         print "No config file found. Generating one - please fill out information in " + os.path.join(os.getcwd(), "config.txt")
         with open('config.txt', 'w') as configfile:
-            config['Discord'] = {'email': 'REPLACE_ME', 'password': 'REPLACE_ME'}
-            config['TheCatAPI.com'] = {'api_key': 'REPLACE_ME'}
+            config['Discord'] = {'email': DEF_VAL, 'password': DEF_VAL}
+            config['TheCatAPI.com'] = {'api_key': DEF_VAL}
+            config['Twitter'] = {"twitter_consumer_key": DEF_VAL, "twitter_consumer_secret": DEF_VAL, \
+                    "twitter_access_token_key": DEF_VAL, "twitter_access_token_secret": DEF_VAL}
             config.write(configfile)
         return
 
@@ -665,9 +674,14 @@ def main():
     password = config['Discord']['password']
     CAT_API_KEY = config['TheCatAPI.com']['api_key']
 
+    twitter_consumer_key = config['Twitter']['consumer_key']
+    twitter_consumer_secret = config['Twitter']['consumer_secret']
+    twitter_access_token_key = config['Twitter']['access_token_key']
+    twitter_access_token_secret = config['Twitter']['access_token_secret']
+
     # Prevent execution if the configuration file isn't complete
-    for arg in [email, password, CAT_API_KEY]:
-        if arg == "REPLACE_ME":
+    for arg in [email, password, CAT_API_KEY, twitter_api_key, twitter_consumer_key, twitter_consumer_secret, twitter_access_token_key, twitter_access_token_secret]:
+        if arg == DEF_VAL:
             print "config.txt has not been fully completed. Fully fill out config.txt and re-run."
             return
 
@@ -707,6 +721,30 @@ def main():
     # Connect to Discord, and begin listening to events.
     client.login(email, password)
     client.run()
+
+    # Twitter listener
+    tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
+        twitter_consumer_key, twitter_consumer_secret)
+    tp.start()
+
+
+    # TODO: Admin console commands?
+    done = False
+    console_cmd = ""
+    while not done:
+        console_cmd = raw_input("> ")
+    except KeyboardInterrupt:
+        print ""
+        print("ti-bot: Closing API Client..."),
+        client.logout()
+        print "Done."
+        print("ti-bot: Closing Twitter Listener..."),
+        print "Done."
+        tp.stop()
+    except:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
+    print "SEE YOU SPACE COWBOY..."
 
 
 if __name__ == '__main__':
