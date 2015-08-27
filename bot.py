@@ -639,7 +639,7 @@ def cmd_wipebot(message):
 
     to_remove = [m for m in client.logs_from(message.channel, limit=history)]
     for log_message in to_remove:
-        if log_message.author.name != "ti-bot" and not log_message.content.beginswith("!"):
+        if log_message.author.name != "ti-bot" and not log_message.content.startswith("!"):
             continue
         client.delete_message(log_message)
 
