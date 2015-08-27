@@ -604,7 +604,8 @@ def cmd_wipe(message):
         except:
             return
 
-    for log_message in client.logs_from(message.channel, limit=2):
+    to_remove = [m for m in client.logs_from(message.channel, limit=2)]
+    for log_message in to_remove:
         client.delete_message(log_message)
 
 
