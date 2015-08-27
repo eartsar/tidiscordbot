@@ -8,10 +8,10 @@ WARNING_COUNT = 8
 LIMITER_COUNT = 10
 
 # How far back we keep track of messages
-LIMITER_WINDOW = 120
+LIMITER_WINDOW = 60
 
 # Penalty duration
-REDLIGHT_TIME = 60
+REDLIGHT_TIME = 30
 
 # Status codes
 GREEN_LIGHT = 0
