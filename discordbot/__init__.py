@@ -4,7 +4,7 @@ from discord.client import _null_event
 class DiscordLoginError(Exception): pass
 
 class DiscordBot(object):
-    def __init__(self, username=None, password=None, handlers={}, client=None):
+    def __init__(self, username=None, password=None, handlers={}, client=None, **kwargs):
         self._client = client
         self._user   = "DiscordBot" if not username else username
         if not client:
@@ -39,10 +39,16 @@ class DiscordBot(object):
     def user_id(self):
         return self._client.user.id
 
-    def login(self, username, password):
+    @property
+    def servers(self):
+        return self._client.servers
+
+    def login(self, username, password, autorun=False):
         self._user = username
         self._client.login(username, password)
-        self._client.run()
+
+        if autorun:
+            self._client.run()
 
     def run(self):
         self._client.run()
@@ -50,14 +56,48 @@ class DiscordBot(object):
     def logout(self):
         self._client.logout()
 
-    def send_message(self, message, channel=None, mentions=True):
+    def find_server(self, server_name):
+        for server in self.servers:
+            if server.name == server_name:
+                return server
+
+        return None
+
+    def find_channel(self, server_name, channel_name):
+        _server = None
+
+        for server in self.servers:
+            if server.name == server_name:
+                _server = server
+                break
+
+        if not _server:
+            raise Exception("Cannot find server (%s)" % server_name)
+
+        for channel in _server.channels:
+            if channel.name == channel_name: #There are no hashtags in channel names
+                return channel
+
+        raise Exception("Cannot find channel (%s) on server (%s)" % (channel_name, server_name))
+
+
+class KigenBot(DiscordBot):
+    def send_message(self, message, server=None, channel=None, mentions=True):
         if not self._client._is_logged_in:
             raise DiscordLoginError("%s has not logged in" % self) 
 
-        return
+        if not server:
+            server = self.servers[0]
+        elif type(server) == str:
+            server = self.find_server(server)
+
+        if type(channel) ==  str:
+            for _channel in _server.channels:
+                if _channel.name == channel_name: #There are no hashtags in channel names
+                    channel = _channel
 
         if not channel:
-            channel = self._client.servers[0].channels[0]
+            channel = server.channels[0]
 
         self._client.send_message(channel, message)
 
@@ -66,13 +106,15 @@ class DiscordBot(object):
         print(self._client.user.id)
         print('------')
 
-        self.send_message("Test message from KigenBot")
-
         for s in self._client.servers:
             print s.name
 
             for c in s.channels:
-                print "\t%s" % c.name
+                print("\t%s" % c.name)
+
+        print('------')
+
+        self.send_message("Test message from KigenBot", server="titanium-ffxiv")
 
     def on_status(self, server, user, status, gameid):
         if status ==  "offline":
@@ -84,10 +126,11 @@ class DiscordBot(object):
 
         #NOTE: Phone app seems to "connect" when in front and "disconnect" when not
 
-        self.send_message(msg % user)
+        if server.name != "titanium-ffxiv":
+            return
+
+        self.send_message(msg % user, server=server, channel="general")
         print(status)
-        print(server)
-        print(user)
         print(gameid)
 
     def on_message(self, message):
@@ -106,23 +149,18 @@ class DiscordBot(object):
         #print(message.content)
         #print(message.attachments)
         #print(message.embeds)
-        #print(message.channel)
+        #print(message.channel.name)
+        #print(message.channel.server.name)
+        #print(dir(message.channel))
         #print(message.mentions) #USER obj
 
-        print("%s:%s" % (message.author, message.content))
+        print("%s(%s - %s):%s" % (message.author, message.channel.server.name, message.channel.name, message.content))
 
 if __name__ == "__main__":
     try:
         import configparser
     except ImportError:
         import ConfigParser as configparser
-
-    db = DiscordBot()
-
-    try:
-        db.send_message(0, "woo")
-    except DiscordLoginError:
-        print("Caught login error as expected")
 
     config = configparser.ConfigParser()
     
@@ -131,6 +169,14 @@ if __name__ == "__main__":
     email = config.get('Discord', 'email')
     password = config.get('Discord', 'password')
     
-    db.login(email, password)
+    kb = KigenBot(username = email,
+                  password = password,
+                  server = "titanium-ffix",
+                  channel = "general")
 
-    db.logout()
+    kb.run()
+
+    #print(kb.servers)
+    #print(kb.channels)
+
+    #kb.logout()
