@@ -1,13 +1,13 @@
-<<<<<<< HEAD
-﻿import sys
+import sys
 import os
 import json
 import random
 import urbandict
 import time
-import tipoll
 import requests
-from discordbot import DiscordBot 
+from discordbot import DiscordBot
+from ti_poll import Poll
+from ti_traffic import TrafficLight
 try:
     import configparser
 except ImportError:
@@ -24,7 +24,7 @@ client = discord.Client()
 currentPoll = None
 
 # Object to manage spam tracking
-trafficLight = traffic.TrafficLight()
+trafficLight = TrafficLight()
 
 # Dictionary of "!function" to cmd_function(message) handlers.
 handlers = None
@@ -65,9 +65,8 @@ def on_status(server, user, status, gameid):
     # update the last seen data file
     print "!seen tracking - " + user.name + " - status: " + status
 
-    f = open("seen.dat", "r")
-    data = json.loads(f.read())
-    f.close()
+    with open("seen.dat", "r") as f:
+        data = json.loads(f.read())
 
     data[user.name.lower()] = time.time()
 
@@ -280,9 +279,9 @@ def cmd_shortboat(message):
     thing = message.content[len(cmd):].strip()
     if not thing:
         return
-    f = open("boats.dat", "r")
-    data = json.loads(f.read())
-    f.close()
+
+    with open("boats.dat", "r") as f:
+        data = json.loads(f.read())
 
     op = ""
     if cmd == "!upboat":
@@ -391,7 +390,7 @@ def cmd_poll(message):
         opts[i] = opts[i].strip()
 
 
-    currentPoll = tipoll.Poll(message.author, opts[0], opts[1:])
+    currentPoll = Poll(message.author, opts[0], opts[1:])
     s = "**" + message.author.name + " starts a poll.**\n" + currentPoll.pretty_print()
     client.send_message(message.channel, s)
 
@@ -460,15 +459,14 @@ def cmd_seen(message):
             client.send_message(message.channel, user + " is currently **online**.")
 
             if key not in data:
-                f = open("seen.dat", "r")
-                data = json.loads(f.read())
-                f.close()
+                with open("seen.dat", "r") as f:
+                    data = json.loads(f.read())
 
                 data[user] = time.time()
 
-                f = open("seen.dat", "w")
-                f.write(json.dumps(data))
-                f.close()
+                with open("seen.dat", "w") as f:
+                    f.write(json.dumps(data))
+            
             return
 
     if key not in data:
