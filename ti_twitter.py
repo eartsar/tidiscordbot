@@ -32,6 +32,8 @@ class TwitterPoll(threading.Thread):
             self.timestamp = int(time())
         else:
             self.timestamp = int(self.timestamp)
+        
+        self.keep_running = True
 
     def _updateTimestamp(self):
         self.timestamp = int(time())
@@ -41,7 +43,7 @@ class TwitterPoll(threading.Thread):
     def run(self):
         self.twitter = twitter.Twitter(auth=self._auth)
 
-        while True:
+        while self.keep_running:
             try:
                 timeline = self.twitter.statuses.home_timeline()
             except Exception as e:
@@ -77,6 +79,9 @@ class TwitterPoll(threading.Thread):
                 #TODO: Add bot hooks/callbacks
 
             sleep(self.polling_seconds)
+
+    def stop(self):
+        self.keep_running = False
 
     def register_event(self, argument):
         """A decorator that registers an event to listen to.
