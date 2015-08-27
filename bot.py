@@ -680,8 +680,10 @@ def main():
         with open('config.txt', 'w') as configfile:
             config['Discord'] = {'email': DEF_VAL, 'password': DEF_VAL}
             config['TheCatAPI.com'] = {'api_key': DEF_VAL}
-            config['Twitter'] = {"twitter_consumer_key": DEF_VAL, "twitter_consumer_secret": DEF_VAL, \
-                    "twitter_access_token_key": DEF_VAL, "twitter_access_token_secret": DEF_VAL}
+            config['Twitter'] = {"consumer_key": DEF_VAL,
+                                 "consumer_secret": DEF_VAL,
+                                 "access_token_key": DEF_VAL,
+                                 "access_token_secret": DEF_VAL}
             config.write(configfile)
         return
 
