@@ -590,10 +590,10 @@ def cmd_wipe(message):
     Usage:
       !wipe [number]
 
-    Wipes a certain number of messages from the channel. By default, this is two.
+    Wipes a certain number of messages from the channel. By default, this is one.
     """
     # TODO: check role
-    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
+    if not isinstance(message.channel, discord.channel.PrivateChannel) or message.author.name != "Fura Barumaru":
         return
 
     opt = message.content[len("!wipe "):].strip()
@@ -606,6 +606,42 @@ def cmd_wipe(message):
 
     to_remove = [m for m in client.logs_from(message.channel, limit=num + 1)]
     for log_message in to_remove:
+        client.delete_message(log_message)
+
+
+def cmd_wipebot(message):
+    """
+    **!wipebot**
+
+    Usage:
+      !wipebot <number> <history>
+
+    Example:
+      !wipebot 10 2000
+
+    Wipes a certain number of !cmd messages and bot responses from the channel.
+    This crawls over *history* messages, deleting up to *number* of them that apply.
+    """
+    # TODO: check role
+    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
+        return
+
+    opts = message.content.split(" ")
+    if len(opts) != 3:
+        return
+    num = None
+    history = None
+    if opt:
+        try:
+            num = int(opts[1])
+            history = int(opts[2])
+        except:
+            return
+
+    to_remove = [m for m in client.logs_from(message.channel, limit=history)]
+    for log_message in to_remove:
+        if log_message.author.name != "ti-bot" and not log_message.content.beginswith("!"):
+            continue
         client.delete_message(log_message)
 
 
@@ -662,6 +698,7 @@ def main():
         handlers["!test"] = cmd_test
         handlers["!vote"] = cmd_vote
         handlers["!wipe"] = cmd_wipe
+        handlers["!wipebot"] = cmd_wipebot
 
         handlers["!random"] = cmd_random
         handlers["!roll"] = cmd_roll
