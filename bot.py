@@ -699,7 +699,7 @@ def main():
     twitter_access_token_secret = config['Twitter']['access_token_secret']
 
     # Prevent execution if the configuration file isn't complete
-    for arg in [email, password, CAT_API_KEY, twitter_api_key, twitter_consumer_key, twitter_consumer_secret, twitter_access_token_key, twitter_access_token_secret]:
+    for arg in [email, password, CAT_API_KEY, twitter_consumer_key, twitter_consumer_secret, twitter_access_token_key, twitter_access_token_secret]:
         if arg == DEF_VAL:
             print "config.txt has not been fully completed. Fully fill out config.txt and re-run."
             return
