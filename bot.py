@@ -1,11 +1,10 @@
-import sys
 import os
 import json
 import random
 import urbandict
 import time
 import requests
-from discordbot import DiscordBot
+import discord
 from ti_poll import Poll
 from ti_traffic import TrafficLight
 try:
