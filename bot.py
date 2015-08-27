@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import traceback
 import json
@@ -735,14 +735,9 @@ def main():
         handlers["!coinflip"] = cmd_flip
         handlers["!gifcat"] = cmd_catgif
 
-    # Connect to Discord, and begin listening to events.
-    client.login(email, password)
-    client.run()
-
     # Twitter listener
     tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
         twitter_consumer_key, twitter_consumer_secret)
-    tp.start()
 
     @tp.register_event("new_tweet")
     def test(user, tweet, tweetdata):
@@ -752,23 +747,29 @@ def main():
     def no_tweets():
         return
 
+    tp.start()
+
+    # Connect to Discord, and begin listening to events.
+    client.login(email, password)
+    client.run() #This blocks the main thread.
 
     # TODO: Admin console commands?
     done = False
     console_cmd = ""
     while not done:
-        console_cmd = raw_input("> ")
-    except KeyboardInterrupt:
-        print ""
-        print("ti-bot: Closing API Client..."),
-        client.logout()
-        print "Done."
-        print("ti-bot: Closing Twitter Listener..."),
-        print "Done."
-        tp.stop()
-    except:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
+        try:
+            console_cmd = raw_input("> ")
+        except KeyboardInterrupt:
+            print("\nti-bot: Closing API Client..."),
+            client.logout()
+            print("Done.")
+            print("ti-bot: Closing Twitter Listener..."),
+            print "Done."
+            tp.stop()
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
+
     print "SEE YOU SPACE COWBOY..."
 
 
