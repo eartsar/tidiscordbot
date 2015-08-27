@@ -648,6 +648,23 @@ def cmd_wipebot(message):
         client.delete_message(log_message)
 
 
+def general_channel(client):
+    tixiv = None
+    for server in client.servers:
+        if server.name == 'titanium-ffxiv':
+            tixiv = server
+
+    if not tixiv:
+        return None
+
+    for channel in tixiv.channels:
+        if channel.name == '#general':
+            return channel
+
+    return None
+
+
+
 def main():
     global handlers, alaises, CAT_API_KEY
 
@@ -726,6 +743,14 @@ def main():
     tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
         twitter_consumer_key, twitter_consumer_secret)
     tp.start()
+
+    @tp.register_event("new_tweet")
+    def test(user, tweet, tweetdata):
+        client.send_message(general_channel(client), "CHIRP CHIRP MOFOS!\n%s(%s): %s\n\n" % (user, tweetdata["created_at"], tweet))
+
+    @tp.register_event("no_tweets")
+    def no_tweets():
+        return
 
 
     # TODO: Admin console commands?
