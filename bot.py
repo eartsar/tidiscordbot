@@ -593,7 +593,7 @@ def cmd_wipe(message):
     Wipes a certain number of messages from the channel. By default, this is one.
     """
     # TODO: check role
-    if not isinstance(message.channel, discord.channel.PrivateChannel) or message.author.name != "Fura Barumaru":
+    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
         return
 
     opt = message.content[len("!wipe "):].strip()
