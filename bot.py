@@ -583,6 +583,31 @@ def cmd_random(message):
     return
 
 
+def cmd_wipe(message):
+    """
+    **!wipe**
+
+    Usage:
+      !wipe [number]
+
+    Wipes a certain number of messages from the channel. By default, this is two.
+    """
+    # TODO: check role
+    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
+        return
+
+    opt = message.content[len("!wipe "):].strip()
+    num = 2
+    if opt:
+        try:
+            num = int(opt)
+        except:
+            return
+
+    for log_message in client.logs_from(message.channel, limit=2):
+        client.delete_message(log_message)
+
+
 def main():
     global handlers, alaises, CAT_API_KEY
 
@@ -635,6 +660,7 @@ def main():
         handlers["!seen"] = cmd_seen
         handlers["!test"] = cmd_test
         handlers["!vote"] = cmd_vote
+        handlers["!wipe"] = cmd_wipe
 
         handlers["!random"] = cmd_random
         handlers["!roll"] = cmd_roll
