@@ -650,6 +650,7 @@ def cmd_wipebot(message):
 
 def general_channel(client):
     tixiv = None
+
     for server in client.servers:
         if server.name == 'titanium-ffxiv':
             tixiv = server
@@ -658,7 +659,7 @@ def general_channel(client):
         return None
 
     for channel in tixiv.channels:
-        if channel.name == '#general':
+        if channel.name == 'general': #There are no hashtags in channel names
             return channel
 
     return None

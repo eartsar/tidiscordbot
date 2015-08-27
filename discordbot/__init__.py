@@ -54,6 +54,8 @@ class DiscordBot(object):
         if not self._client._is_logged_in:
             raise DiscordLoginError("%s has not logged in" % self) 
 
+        return
+
         if not channel:
             channel = self._client.servers[0].channels[0]
 
@@ -65,6 +67,12 @@ class DiscordBot(object):
         print('------')
 
         self.send_message("Test message from KigenBot")
+
+        for s in self._client.servers:
+            print s.name
+
+            for c in s.channels:
+                print "\t%s" % c.name
 
     def on_status(self, server, user, status, gameid):
         if status ==  "offline":
@@ -120,8 +128,8 @@ if __name__ == "__main__":
     
     # load in configuration information
     config.read('config.txt')
-    email = config['Discord']['email']
-    password = config['Discord']['password']
+    email = config.get('Discord', 'email')
+    password = config.get('Discord', 'password')
     
     db.login(email, password)
 
