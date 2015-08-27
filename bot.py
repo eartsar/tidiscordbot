@@ -746,7 +746,7 @@ def main():
 
     @tp.register_event("new_tweet")
     def test(user, tweet, tweetdata):
-        client.send_message(general_channel(client), "%s tweets: %s  (%s)\n\n" % (user, tweet, tweetdata["created_at"]))
+        client.send_message(general_channel(client), "**%s tweets:** %s  (%s)\n\n" % (user, tweet, tweetdata["created_at"]))
 
     @tp.register_event("no_tweets")
     def no_tweets():
