@@ -631,12 +631,11 @@ def cmd_wipebot(message):
         return
     num = None
     history = None
-    if opt:
-        try:
-            num = int(opts[1])
-            history = int(opts[2])
-        except:
-            return
+    try:
+        num = int(opts[1])
+        history = int(opts[2])
+    except:
+        return
 
     to_remove = [m for m in client.logs_from(message.channel, limit=history)]
     for log_message in to_remove:
