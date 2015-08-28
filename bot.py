@@ -754,25 +754,18 @@ def main():
 
     # Connect to Discord, and begin listening to events.
     client.login(email, password)
-    client.run() #This blocks the main thread.
-
-    # TODO: Admin console commands?
-    done = False
-    console_cmd = ""
-    while not done:
-        try:
-            console_cmd = raw_input("> ")
-        except KeyboardInterrupt:
-            print("\nti-bot: Closing API Client..."),
-            client.logout()
-            print("Done.")
-            print("ti-bot: Closing Twitter Listener..."),
-            print "Done."
-            tp.stop()
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
-
+    try:
+        client.run() #This blocks the main thread.
+    except KeyboardInterrupt:
+        print("\nti-bot: Closing API Client..."),
+        client.logout()
+        print("Done.")
+        print("ti-bot: Closing Twitter Listener..."),
+        print "Done."
+        tp.stop()
+    except:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
     print "SEE YOU SPACE COWBOY..."
 
 
