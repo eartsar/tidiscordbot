@@ -453,25 +453,28 @@ def cmd_seen(message):
     data = json.loads(f.read())
     f.close()
 
+    # PMs are separate from servers, so running this in a PM doesn't make sense
     if isinstance(message.channel, discord.channel.PrivateChannel):
         client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
 
-    for member in message.channel.server.members:
-        if member.name.lower() == key:
-            client.send_message(message.channel, user + " is currently **online**.")
 
-            if key not in data:
-                with open("seen.dat", "r") as f:
-                    data = json.loads(f.read())
+    found = filter(lambda x: x.status != "offline" and x.name.lower() == key, message.channel.server.members)
 
-                data[user] = time.time()
+    # The user is currently online
+    if len(found) > 0:
+        client.send_message(message.channel, user + " is currently **online**.")
 
-                with open("seen.dat", "w") as f:
-                    f.write(json.dumps(data))
-            
+        # Haven't seen the user - add to the dat
+        if key not in data:
+            with open("seen.dat", "r") as f:
+                data = json.loads(f.read())
+            data[user] = time.time()
+            with open("seen.dat", "w") as f:
+                f.write(json.dumps(data))
             return
 
+    # The user isn't online, but hasn't been tracked
     if key not in data:
         client.send_message(message.channel, "I haven't seen " + user + " before.")
         return
