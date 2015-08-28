@@ -46,6 +46,7 @@ class TwitterPoll(threading.Thread):
         while self.keep_running:
             try:
                 timeline = self.twitter.statuses.home_timeline()
+                mtimeline = self.twitter.statuses.mentions_timeline()
             except Exception as e:
                 print(e)
                 self.twitter = twitter.Twitter(auth=self._auth, retry=True)
