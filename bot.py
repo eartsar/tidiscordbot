@@ -688,6 +688,7 @@ def main():
                                  "consumer_secret": DEF_VAL,
                                  "access_token_key": DEF_VAL,
                                  "access_token_secret": DEF_VAL}
+            config['Twitter Feed'] = {'default_channel': "general"}
             config.write(configfile)
         return
 
@@ -701,6 +702,8 @@ def main():
     twitter_consumer_secret = config['Twitter']['consumer_secret']
     twitter_access_token_key = config['Twitter']['access_token_key']
     twitter_access_token_secret = config['Twitter']['access_token_secret']
+
+    twitter_default_channel = config['Twitter Feed']['default_channel']
 
     # Prevent execution if the configuration file isn't complete
     for arg in [email, password, CAT_API_KEY, twitter_consumer_key, twitter_consumer_secret, twitter_access_token_key, twitter_access_token_secret]:
@@ -747,11 +750,14 @@ def main():
 
     @tp.register_event("new_tweet")
     def new_tweet(user, tweet, tweetdata):
-        # Map twitter user to channel
-        general = [get_channel(client, "general")]
-        announcements = [get_channel(client, "announcements")]
-        both = general + announcements
-        channels = {"FFXIV_NEWS_EN": both, "FF_XIV_EN": both}
+        # Map twitter users to channels
+        default = get_channel(client, twitter_default_channel)
+        channels = {}
+
+        for (each_key, each_val) in conf.items('Twitter Feed'):
+            if each_key == 'default_channel':
+                continue
+            channels[each_key] = [default] + [get_channel(client, cname) for cname.strip() in each_val.split(",")]
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, general if user not in channels else channels[user]):
