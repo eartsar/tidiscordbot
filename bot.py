@@ -760,7 +760,7 @@ def main():
             channels[each_key] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
-        for channel in filter(lambda x: x is not None, default if user not in channels else channels[user]):
+        for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
             client.send_message(channel, "**%s tweets:** %s  (%s)\n\n" % (user, tweet, tweetdata["created_at"]))
 
     @tp.register_event("no_tweets")
