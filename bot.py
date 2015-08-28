@@ -754,7 +754,7 @@ def main():
         channels = {"FFXIV_NEWS_EN": both, "FF_XIV_EN": both}
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
-        for channel in filter(lambda x: x is not None, general if user in channels else channels[user]):
+        for channel in filter(lambda x: x is not None, general if user not in channels else channels[user]):
             client.send_message(channel, "**%s tweets:** %s  (%s)\n\n" % (user, tweet, tweetdata["created_at"]))
 
     @tp.register_event("no_tweets")
