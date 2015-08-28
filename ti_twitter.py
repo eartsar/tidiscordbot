@@ -50,8 +50,9 @@ class TwitterPoll(threading.Thread):
                 print(e)
                 self.twitter = twitter.Twitter(auth=self._auth, retry=True)
                 timeline = self.twitter.statuses.home_timeline()
+                mtimeline = self.twitter.statuses.mentions_timeline()
 
-            for tl in timeline:
+            for tl in timeline + mtimeline:
                 tw_timestamp = parser.parse(tl["created_at"])
 
                 #python 3.3+

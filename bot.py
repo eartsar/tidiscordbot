@@ -651,7 +651,7 @@ def cmd_wipebot(message):
         client.delete_message(log_message)
 
 
-def general_channel(client):
+def get_channel(client, name):
     tixiv = None
 
     for server in client.servers:
@@ -662,7 +662,7 @@ def general_channel(client):
         return None
 
     for channel in tixiv.channels:
-        if channel.name == 'general': #There are no hashtags in channel names
+        if channel.name == name: #There are no hashtags in channel names
             return channel
 
     return None
@@ -743,11 +743,19 @@ def main():
 
     # Twitter listener
     tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
-        twitter_consumer_key, twitter_consumer_secret)
+        twitter_consumer_key, twitter_consumer_secret, polling_seconds=70)
 
     @tp.register_event("new_tweet")
-    def test(user, tweet, tweetdata):
-        client.send_message(general_channel(client), "**%s tweets:** %s  (%s)\n\n" % (user, tweet, tweetdata["created_at"]))
+    def new_tweet(user, tweet, tweetdata):
+        # Map twitter user to channel
+        general = [get_channel(client, "general")]
+        announcements = [get_channel(client, "announcements")]
+        both = general + announcements
+        channels = {"FFXIV_NEWS_EN": both, "FF_XIV_EN": both}
+
+        # Get the list of channels assigned to the user (or a default), remove any that don't exist
+        for channel in filter(lambda x: x is not None, general if user in channels else channels[user]):
+            client.send_message(channel, "**%s tweets:** %s  (%s)\n\n" % (user, tweet, tweetdata["created_at"]))
 
     @tp.register_event("no_tweets")
     def no_tweets():
