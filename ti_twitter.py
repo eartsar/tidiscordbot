@@ -53,6 +53,7 @@ class TwitterPoll(threading.Thread):
                 timeline = self.twitter.statuses.home_timeline()
                 mtimeline = self.twitter.statuses.mentions_timeline()
 
+            tweet_found = False
             for tl in timeline + mtimeline:
                 tw_timestamp = parser.parse(tl["created_at"])
 
@@ -66,12 +67,9 @@ class TwitterPoll(threading.Thread):
                     tw_timestamp = tw_timestamp.total_seconds()
 
                 if tw_timestamp < self.timestamp:
-                    if tl == timeline[0]:
-                        self._invoke_event("no_tweets")
-
-                    break
+                    continue
                 else:
-                    self._updateTimestamp()
+                    tweet_found = True
 
                 user = tl["user"]["screen_name"]
                 tweet = tl["text"].replace(u'\u2019', "'").replace(u'\u201c', "\"").replace(u'\u2018', "'").replace(u'\u201d', "\"")
@@ -79,7 +77,9 @@ class TwitterPoll(threading.Thread):
                 self._invoke_event("new_tweet", user, tweet, tl)
 
                 #TODO: Add bot hooks/callbacks
-
+            self._updateTimestamp()
+            if not tweet_found:
+                self._invoke_event("no_tweets")
             sleep(self.polling_seconds)
 
     def stop(self):
