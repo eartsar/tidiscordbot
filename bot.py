@@ -757,7 +757,7 @@ def main():
         for (each_key, each_val) in config.items('Twitter Feed'):
             if each_key == 'default_channel':
                 continue
-            channels[each_key] = [default] + [get_channel(client, cname.strip()) for cname in each_val.split(",")]
+            channels[each_key] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, default if user not in channels else channels[user]):
