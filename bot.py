@@ -656,6 +656,8 @@ def cmd_wipebot(message):
 
 
 def cmd_strip(message):
+    return
+    """
     if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
         return
 
@@ -664,6 +666,7 @@ def cmd_strip(message):
         print str(log_message.embeds)
         log_message.embeds = []
         client.edit_message(log_message, log_message.content)
+    """
 
 
 def get_channel(client, name):
@@ -852,7 +855,7 @@ def main():
 
         handlers["!flickr"] = cmd_flickr
         handlers["!debug"] = cmd_debug
-        handlers["!strip"] = cmd_strip
+        #handlers["!strip"] = cmd_strip
 
     # Twitter listener
     tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
@@ -872,7 +875,9 @@ def main():
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
-            client.send_message(channel, "**%s tweets:** %s  (%s)\n\n" % (user, tweet, tweetdata["created_at"]))
+            t_content = tweet.encode('utf-8')
+            msg = '{} tweets: {} ({})\n\n'.format(user, t_content, tweetdata["created_at"])
+            client.send_message(channel, msg)
 
     @tp.register_event("no_tweets")
     def no_tweets():
