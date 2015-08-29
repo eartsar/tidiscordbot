@@ -609,7 +609,7 @@ def cmd_wipe(message):
         return
 
     opt = message.content[len("!wipe "):].strip()
-    num = 2
+    num = 1
     if opt:
         try:
             num = int(opt)
