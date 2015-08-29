@@ -731,6 +731,12 @@ def cmd_flickr(message):
         # Create a new album with initial photo as this one
         flickr_api.photosets.create(title=album_name, primary_photo_id=photo_id)
 
+    # Now that we've created it, we need to go looking again for the ID
+    if not album_id:
+        for photoset in flickr_api.walk_photosets():
+            if album_name == photoset.find('title').text:
+                album_id = photoset.attrib['id']
+
     # Get the link to share
     album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
     s = message.author.name + " has uploaded a new photo to their album!  " + album_link
