@@ -1,5 +1,6 @@
 ﻿import os
 import sys
+import urllib
 import traceback
 import json
 import random
@@ -7,6 +8,7 @@ import urbandict
 import time
 import requests
 import discord
+import flickrapi
 from ti_poll import Poll
 from ti_traffic import TrafficLight
 from ti_twitter import TwitterPoll
@@ -19,6 +21,9 @@ except ImportError:
 # TheCatAPI.com information
 CAT_API_URL = "http://thecatapi.com/api/images/get"
 CAT_API_KEY = ""
+
+# Flickr API access
+flickr_api = None
 
 # The actual API client that deals with Discord events.
 client = discord.Client()
@@ -636,7 +641,6 @@ def cmd_wipebot(message):
     opts = message.content.split(" ")
     if len(opts) != 3:
         return
-    num = None
     history = None
     try:
         num = int(opts[1])
@@ -669,8 +673,37 @@ def get_channel(client, name):
 
 
 
+def cmd_flickit(message):
+    opts = message.content[len("!flickr "):].strip()
+    album_name = message.author + "'s album"
+    
+    if not flickr_api.token_valid(perms="write"):
+        client.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
+        return
+
+    # upload photo
+
+
+    # Create with initial
+    # flickr_api.photosets.create(title="Fura's Photos", primary_photo_id='20791765229')
+
+
+def cmd_debug(message):
+    print "  content: " + str(message.content)
+    print "  timestamp: " + str(message.timestamp)
+    print "  tts: " + str(message.tts)
+    print "  mention_everyone: " + str(message.mention_everyone)
+    print "  embeds: " + str(message.embeds)
+    print "  id: " + str(message.id)
+    print "  channel: " + str(message.channel.name)
+    print "  author: " + str(message.author)
+    print "  mentions: " + str(message.mentions)
+    print "  attachments: " + str(message.attachments)
+    return
+
+
 def main():
-    global handlers, alaises, CAT_API_KEY
+    global handlers, alaises, CAT_API_KEY, flickr_api
 
     # Deal with the configuration file.
     config = configparser.ConfigParser()
@@ -689,6 +722,7 @@ def main():
                                  "access_token_key": DEF_VAL,
                                  "access_token_secret": DEF_VAL}
             config['Twitter Feed'] = {'default_channel': "general"}
+            config['Flickr'] = {'flickr_api_key': DEF_VAL, 'flickr_secret_key': DEF_VAL}
             config.write(configfile)
         return
 
@@ -705,8 +739,14 @@ def main():
 
     twitter_default_channel = config['Twitter Feed']['default_channel']
 
+    FLICKR_API_KEY = config['Flickr']['api_key']
+    FLICKR_SECRET_KEY = config['Flickr']['secret_key']
+
+    to_fill = [email, password, CAT_API_KEY, twitter_consumer_key, twitter_consumer_secret,
+        twitter_access_token_key, twitter_access_token_secret, FLICKR_API_KEY, FLICKR_SECRET_KEY]
+
     # Prevent execution if the configuration file isn't complete
-    for arg in [email, password, CAT_API_KEY, twitter_consumer_key, twitter_consumer_secret, twitter_access_token_key, twitter_access_token_secret]:
+    for arg in to_fill:
         if arg == DEF_VAL:
             print "config.txt has not been fully completed. Fully fill out config.txt and re-run."
             return
@@ -744,6 +784,8 @@ def main():
         handlers["!coinflip"] = cmd_flip
         handlers["!gifcat"] = cmd_catgif
 
+        handlers["!debug"] = cmd_debug
+
     # Twitter listener
     tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
         twitter_consumer_key, twitter_consumer_secret, polling_seconds=70)
@@ -768,6 +810,9 @@ def main():
         return
 
     tp.start()
+
+    # Set the flicker API
+    flickr_api = flickrapi.FlickrAPI(FLICKR_API_KEY, FLICKR_SECRET_KEY)
 
     # Connect to Discord, and begin listening to events.
     client.login(email, password)
