@@ -674,18 +674,57 @@ def get_channel(client, name):
 
 
 def cmd_flickit(message):
-    opts = message.content[len("!flickr "):].strip()
+    link = message.content[len("!flickr "):].strip()
+
+    if not link:
+        return
+
     album_name = message.author + "'s album"
     
+    # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
         client.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
         return
 
-    # upload photo
+    # Validate the linked image type
+    ext = os.path.splitext(link)[1]
+    if ext not in (".jpg", ".png"):
+        return
 
+    # We'll use a timestamp as the photo
+    fname = ".0f" % time.time
 
-    # Create with initial
-    # flickr_api.photosets.create(title="Fura's Photos", primary_photo_id='20791765229')
+    # Grab the photo that was posted at the url
+    try:
+        urllib.urlretrieve(link, filename=fname + ext)
+    except:
+        print "Exception thrown while downloading source file."
+        return
+
+    # upload photo to flickr
+    response = None
+    with open(fname) as f:
+        response = flickr_api.upload(f.name, fileobj=f)
+
+    # cleanup the file stored locally
+    os.remove(fname)
+
+    # validate the upload went okay
+    if not response or response.get('stat') == 'ok':
+        print "Flickr: upload response returned NOT OK"
+    
+    # Get the photo id
+    photoid = response.findtext('photoid')
+
+    # Check to see if the poster has a flickr account already
+    if True:
+        pass
+    else:
+        # Create a new album with initial photo as this one
+        flickr_api.photosets.create(title=album_name, primary_photo_id=photoid)
+
+    # Get the link to share
+    return 
 
 
 def cmd_debug(message):
@@ -800,6 +839,8 @@ def main():
             if each_key == 'default_channel':
                 continue
             channels[each_key] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
+
+        print str(channels)
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
