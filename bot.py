@@ -865,13 +865,13 @@ def main():
 
     # Set the flicker API
     flickr_api = flickrapi.FlickrAPI(FLICKR_API_KEY, FLICKR_SECRET_KEY)
-    if not flickr_api.token_valid(perms="write"):
-        flickr_api.get_request_token(oauth_callback='oob')
-        authorize_url = flickr_api.auth_url(perms='write')
+    if not flickr_api.token_valid(perms=unicode("write")):
+        flickr_api.get_request_token(oauth_callback=unicode('oob'))
+        authorize_url = flickr_api.auth_url(perms=unicode('write'))
         print "!!!!!!!!!"
         print "FLICKR TOKEN INVALID. Authenticate here: " + authorize_url
         verifier = unicode(raw_input('Verifier code: '))
-        flickr_api.get_access_token(verifier)
+        flickr_api.get_access_token(unicode(verifier))
 
     # Connect to Discord, and begin listening to events.
     client.login(email, password)
