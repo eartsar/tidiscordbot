@@ -832,15 +832,14 @@ def main():
     @tp.register_event("new_tweet")
     def new_tweet(user, tweet, tweetdata):
         # Map twitter users to channels
+        user = user.lower()
         default = get_channel(client, twitter_default_channel)
         channels = {}
 
         for (each_key, each_val) in config.items('Twitter Feed'):
             if each_key == 'default_channel':
                 continue
-            channels[each_key] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
-
-        print str(channels)
+            channels[each_key.lower()] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
