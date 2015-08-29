@@ -1,6 +1,5 @@
 ﻿import os
 import sys
-import urllib
 import traceback
 import json
 import random
@@ -9,6 +8,7 @@ import time
 import requests
 import discord
 import flickrapi
+from urllib import FancyURLopener
 from ti_poll import Poll
 from ti_traffic import TrafficLight
 from ti_twitter import TwitterPoll
@@ -698,7 +698,10 @@ def cmd_flickr(message):
 
     # Grab the photo that was posted at the url
     try:
-        urllib.urlretrieve(link, filename=fname)
+        # Force a user agent. Gets around puush cloudflare crap
+        class MyOpener(FancyURLopener):
+            version = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36'
+        MyOpener().retrieve(link, filename=fname)
     except:
         print "Exception thrown while downloading source file."
         return
@@ -710,10 +713,6 @@ def cmd_flickr(message):
 
     # cleanup the file stored locally
     os.remove(fname)
-
-    # validate the upload went okay
-    if not response or response.get('stat') == 'ok':
-        print "Flickr: upload response returned NOT OK"
     
     # Get the photo id
     photo_id = response.findtext('photoid')
