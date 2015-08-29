@@ -74,7 +74,7 @@ def on_ready():
 
 
 @client.event
-def on_status(server, member):
+def on_status(member):
     # update the last seen data file
     print "!seen tracking - " + member.name + " - status: " + member.status
 
