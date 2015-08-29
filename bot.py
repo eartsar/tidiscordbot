@@ -868,7 +868,10 @@ def main():
     if not flickr_api.token_valid(perms="write"):
         flickr_api.get_request_token(oauth_callback='oob')
         authorize_url = flickr_api.auth_url(perms='write')
+        print "!!!!!!!!!"
         print "FLICKR TOKEN INVALID. Authenticate here: " + authorize_url
+        verifier = unicode(raw_input('Verifier code: '))
+        flickr_api.get_access_token(verifier)
 
     # Connect to Discord, and begin listening to events.
     client.login(email, password)
