@@ -705,7 +705,7 @@ def cmd_flickr(message):
 
     # upload photo to flickr
     response = None
-    with open(fname + ext) as f:
+    with open(fname) as f:
         response = flickr_api.upload(f.name, fileobj=f)
 
     # cleanup the file stored locally
