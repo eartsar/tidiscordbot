@@ -672,7 +672,7 @@ def get_channel(client, name):
     return None
 
 
-def cmd_flickit(message):
+def cmd_flickr(message):
     link = message.content[len("!flickr "):].strip()
 
     # Yay for magic numbers
@@ -834,6 +834,7 @@ def main():
         handlers["!coinflip"] = cmd_flip
         handlers["!gifcat"] = cmd_catgif
 
+        handlers["!flickr"] = cmd_flickr
         handlers["!debug"] = cmd_debug
 
     # Twitter listener
