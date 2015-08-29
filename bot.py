@@ -694,11 +694,11 @@ def cmd_flickr(message):
         return
 
     # We'll use a timestamp as the photo
-    fname = "%.0f" % time.time()
+    fname = "%.0f" % time.time() + ext
 
     # Grab the photo that was posted at the url
     try:
-        urllib.urlretrieve(link, filename=fname + ext)
+        urllib.urlretrieve(link, filename=fname)
     except:
         print "Exception thrown while downloading source file."
         return
