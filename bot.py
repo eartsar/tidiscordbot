@@ -681,7 +681,7 @@ def cmd_flickr(message):
     if not link:
         return
 
-    album_name = message.author + "'s album"
+    album_name = message.author.name + "'s album"
     
     # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
