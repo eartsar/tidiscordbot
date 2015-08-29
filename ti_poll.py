@@ -12,10 +12,11 @@ class Poll(object):
         self.options = options
         self.tally = dict(zip([_ for _ in range(len(options))], [0 for _ in options]))
         self.votes = {}
+        self.size = len(options)
 
 
     def vote(self, user, n):
-        if user in self.votes:
+        if user in self.votes or n < 1 or n > len(self.size):
             return False
 
         self.votes[user] = n

@@ -8,6 +8,7 @@ import time
 import requests
 import discord
 import flickrapi
+import microsofttranslator
 from urllib import FancyURLopener
 from ti_poll import Poll
 from ti_traffic import TrafficLight
@@ -18,9 +19,13 @@ try:
 except ImportError:
     import ConfigParser as configparser
 
+
 # TheCatAPI.com information
 CAT_API_URL = "http://thecatapi.com/api/images/get"
 CAT_API_KEY = ""
+
+# Microsoft Translate access
+mstranslate_api = None
 
 # Flickr API access
 flickr_api = None
@@ -429,7 +434,9 @@ def cmd_vote(message):
     if not currentPoll:
         client.send_message(message.channel, "There is no poll underway.")
     choice = int(choice)
-    currentPoll.vote(message.author, choice)
+    success = currentPoll.vote(message.author, choice)
+    if not success:
+        return
     client.send_message(message.channel, message.author.name + " casts a vote for **" + str(choice) + "**.")
     return
 
@@ -772,7 +779,7 @@ def cmd_debug(message):
 
 
 def main():
-    global handlers, alaises, CAT_API_KEY, flickr_api
+    global handlers, alaises, CAT_API_KEY, flickr_api, mstranslate_api
 
     # Deal with the configuration file.
     config = configparser.ConfigParser()
@@ -792,6 +799,7 @@ def main():
                                  "access_token_secret": DEF_VAL}
             config['Twitter Feed'] = {'default_channel': "general"}
             config['Flickr'] = {'flickr_api_key': DEF_VAL, 'flickr_secret_key': DEF_VAL}
+            config['Microsoft Translate'] = {'api_key': DEF_VAL, 'secret_key': DEF_VAL}
             config.write(configfile)
         return
 
@@ -810,6 +818,11 @@ def main():
 
     FLICKR_API_KEY = config['Flickr']['api_key']
     FLICKR_SECRET_KEY = config['Flickr']['secret_key']
+
+    MICROSOFT_TRANSLATE_API = config['Microsoft Translate']['api_key']
+    MICROSOFT_TRANSLATE_SECRET = config['Microsoft Translate']['secret_key']
+
+    mstranslate_api = microsofttranslator.Translator(MICROSOFT_TRANSLATE_API, MICROSOFT_TRANSLATE_SECRET)
 
     to_fill = [email, password, CAT_API_KEY, twitter_consumer_key, twitter_consumer_secret,
         twitter_access_token_key, twitter_access_token_secret, FLICKR_API_KEY, FLICKR_SECRET_KEY]
