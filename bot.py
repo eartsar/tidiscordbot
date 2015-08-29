@@ -672,9 +672,11 @@ def get_channel(client, name):
     return None
 
 
-
 def cmd_flickit(message):
     link = message.content[len("!flickr "):].strip()
+
+    # Yay for magic numbers
+    flickr_user_id = '135801662@N07'
 
     if not link:
         return
@@ -714,16 +716,25 @@ def cmd_flickit(message):
         print "Flickr: upload response returned NOT OK"
     
     # Get the photo id
-    photoid = response.findtext('photoid')
+    photo_id = response.findtext('photoid')
 
-    # Check to see if the poster has a flickr account already
-    if True:
-        pass
+    # Check to see if the poster has a flickr album already
+    album_id = None
+    for photoset in flickr_api.walk_photosets():
+        if album_name == photoset.find('title').text:
+            album_id = photoset.attrib['id']
+    
+    # We've uploaded before! Add our photo to our already existing album
+    if album_id:
+        flickr_api.photosets.addPhoto(photoset_id=album_id, photo_id=photo_id)
     else:
         # Create a new album with initial photo as this one
-        flickr_api.photosets.create(title=album_name, primary_photo_id=photoid)
+        flickr_api.photosets.create(title=album_name, primary_photo_id=photo_id)
 
     # Get the link to share
+    album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
+    s = message.author.name + " has uploaded a new photo to their album!  " + album_link
+    client.send_message(message.channel, s)
     return 
 
 
