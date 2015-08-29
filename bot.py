@@ -655,6 +655,17 @@ def cmd_wipebot(message):
         client.delete_message(log_message)
 
 
+def cmd_strip(message):
+    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
+        return
+
+    to_remove = [m for m in client.logs_from(message.channel, limit=2)]
+    for log_message in to_remove:
+        print str(log_message.embeds)
+        log_message.embeds = []
+        client.edit_message(log_message, log_message.content)
+
+
 def get_channel(client, name):
     tixiv = None
 
@@ -841,6 +852,7 @@ def main():
 
         handlers["!flickr"] = cmd_flickr
         handlers["!debug"] = cmd_debug
+        handlers["!strip"] = cmd_strip
 
     # Twitter listener
     tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
