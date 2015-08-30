@@ -890,8 +890,8 @@ def main():
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
             t_content = tweet.encode('utf-8')
             if mstranslate_api.detect_language(t_content) != u'en':
-                t_content = mstranslate_api.translate(t_content, 'en')
-            msg = '{} tweets: {} ({})\n\n'.format(user, t_content, tweetdata["created_at"])
+                t_content = t_content + "\n    (*Translation: " + mstranslate_api.translate(t_content, 'en') + "*) "
+            msg = '{} tweets: {}\n\n'.format(user, t_content)
             client.send_message(channel, msg)
 
     @tp.register_event("no_tweets")
