@@ -16,7 +16,7 @@ class Poll(object):
 
 
     def vote(self, user, n):
-        if user in self.votes or n < 1 or n > len(self.size):
+        if user in self.votes or n < 1 or n > self.size:
             return False
 
         self.votes[user] = n
