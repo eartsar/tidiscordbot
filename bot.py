@@ -889,6 +889,8 @@ def main():
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
             t_content = tweet.encode('utf-8')
+            if mstranslate_api.detect_language(t_content) != u'en':
+                t_content = mstranslate_api.translate(t_content, 'en')
             msg = '{} tweets: {} ({})\n\n'.format(user, t_content, tweetdata["created_at"])
             client.send_message(channel, msg)
 
