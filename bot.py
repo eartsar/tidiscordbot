@@ -699,14 +699,21 @@ def cmd_flickr(message):
     # Yay for magic numbers
     flickr_user_id = '135801662@N07'
 
-    if not link:
-        return
-
     album_name = message.author.name + "'s album"
     
     # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
         client.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
+        return
+
+    if not link:
+        album_id = None
+        for photoset in flickr_api.walk_photosets():
+            if album_name == photoset.find('title').text:
+                album_id = photoset.attrib['id']
+        if album_id:
+            album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
+            client.send_message(message.channel, message.author.name + " shares their album!\n" + album_link)
         return
 
     # Validate the linked image type
@@ -759,7 +766,7 @@ def cmd_flickr(message):
 
     # Get the link to share
     album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
-    s = message.author.name + " has uploaded a new photo to their album!  " + album_link
+    s = message.author.name + " has uploaded a new photo to their album!\n" + album_link
     client.send_message(message.channel, s)
     return 
 
