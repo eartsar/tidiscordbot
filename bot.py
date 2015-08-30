@@ -422,7 +422,7 @@ def cmd_vote(message):
     """
     choice = message.content[len("!vote "):].strip()
     if not choice:
-        return
+        choice = message.content[-1]
 
     if isinstance(message.channel, discord.channel.PrivateChannel):
         client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")

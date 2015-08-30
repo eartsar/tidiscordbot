@@ -3,7 +3,7 @@
 class Poll(object):
     """Object that represents a poll"""
 
-    VOTE_TEMPLATE = "    **{vote_num} votes** (!vote{vote_id})    *{vote_msg}*\n"
+    VOTE_TEMPLATE = "    **{vote_num} votes** (!vote {vote_id})    *{vote_msg}*\n"
 
     def __init__(self, author, question, options):
         self.author = author
