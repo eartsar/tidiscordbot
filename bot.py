@@ -2,6 +2,7 @@
 import sys
 import traceback
 import json
+import re
 import random
 import urbandict
 import time
@@ -896,7 +897,9 @@ def main():
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
             t_content = tweet
-            if mstranslate_api.detect_language(t_content) != u'en':
+            cleaned = re.sub(r"(?:\@|https?\://)\S+", "", t_content)
+            cleaned = ''.join(e for e in cleaned if e.isalnum() or e in (' '))
+            if mstranslate_api.detect_language(cleaned) != u'en':
                 t_content = t_content + u"\n    (*Translation: " + mstranslate_api.translate(t_content, 'en') + "*) "
             msg = '{} tweets: {}\n\n'.format(user, t_content.encode('utf-8'))
             client.send_message(channel, msg)
