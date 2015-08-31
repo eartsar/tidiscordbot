@@ -663,38 +663,28 @@ def cmd_wipebot(message):
         client.delete_message(log_message)
 
 
-def cmd_strip(message):
-    return
-    """
-    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
-        return
-
-    to_remove = [m for m in client.logs_from(message.channel, limit=2)]
-    for log_message in to_remove:
-        print str(log_message.embeds)
-        log_message.embeds = []
-        client.edit_message(log_message, log_message.content)
-    """
-
-
-def get_channel(client, name):
-    tixiv = None
-
-    for server in client.servers:
-        if server.name == 'titanium-ffxiv':
-            tixiv = server
-
-    if not tixiv:
-        return None
-
-    for channel in tixiv.channels:
-        if channel.name == name: #There are no hashtags in channel names
-            return channel
-
-    return None
-
-
 def cmd_flickr(message):
+    """
+    **!flickr**
+
+    Usage:
+      !flickr
+      !flickr <URL>
+
+    Example:
+      !flickr http://i.imgur.com/1Z7HFgw.png
+
+    Command you can use to access your album in the Titanium FC Flickr account.
+    Typing the command **!flickr** with no arguments will share your album in channel.
+    Supplying a URL to the command will upload the image to your album.
+
+    **Important!**
+    - The URL **must be to the image file directly** (or a puu.sh URL).
+    - The image must be **jpg** or a **png** file.
+    - Uploading a picture for the first time will create your album. It will also set
+          the album cover to this picture. This can be changed with **!flickrcover**
+    - Misuse of this command will be met with Fura's wrath.
+    """
     link = message.content[len("!flickr "):].strip()
 
     # Yay for magic numbers
@@ -769,7 +759,71 @@ def cmd_flickr(message):
     album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
     s = message.author.name + " has uploaded a new photo to their album!\n" + album_link
     client.send_message(message.channel, s)
-    return 
+    return
+
+
+def cmd_flickr_cover(message):
+    """
+    **!flickrcover**
+
+    Usage:
+      !flickrcover <image ID>
+
+    Example:
+      !flickr 20990689891
+
+    Changes the cover of your album in the Titanium FC's Flickr account to another
+    album image. You must have uploaded a picture using **!flickr** first, or else
+    you will not have an album generated for you.
+
+    **HOW TO FIND YOUR IMAGE ID**        
+    1. Type **!flickr** for a link to your album.
+    2. Click the link.
+    3. Go to the image you desire to be your cover. **This must be in YOUR album!**
+    4. Look at the URL for its ID.
+
+    Example:
+    https://www.flickr.com/photos/135801662@N07/**COPY_THIS_NUMBER**/in/album-72157655600356143/
+    """
+    photo_id = message.content[len("!flickrcover"):].strip()
+    if not photo_id:
+        return
+
+    if not isinstance(message.channel, discord.channel.PrivateChannel):
+        return
+
+    # Yay for magic numbers
+    flickr_user_id = '135801662@N07'
+
+    album_name = message.author.name + "'s album"
+    
+    # Make sure the flickr api is valid
+    if not flickr_api.token_valid(perms="write"):
+        client.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
+        return
+
+    # Check to see if the poster has a flickr album already
+    album_id = None
+    for photoset in flickr_api.walk_photosets():
+        if album_name == photoset.find('title').text:
+            album_id = photoset.attrib['id']
+    
+    # We've uploaded before! Add our photo to our already existing album
+    if not album_id:
+        return
+
+    try:
+        flickr_api.photosets.setPrimaryPhoto(photoset_id=album_id, photo_id=photo_id)
+    except:
+        client.send_message(message.author, "Cannot set Flickr album cover. \
+            Invalid image ID. Check **!help !flickrcover** for instructions.")
+        return
+
+    # Get the link to share
+    album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
+    s = "You changed your album cover successfully.\n" + album_link
+    client.send_message(message.author, s)
+    return
 
 
 def cmd_debug(message):
@@ -784,6 +838,23 @@ def cmd_debug(message):
     print "  mentions: " + str(message.mentions)
     print "  attachments: " + str(message.attachments)
     return
+
+
+def get_channel(client, name):
+    tixiv = None
+
+    for server in client.servers:
+        if server.name == 'titanium-ffxiv':
+            tixiv = server
+
+    if not tixiv:
+        return None
+
+    for channel in tixiv.channels:
+        if channel.name == name: #There are no hashtags in channel names
+            return channel
+
+    return None
 
 
 def main():
