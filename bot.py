@@ -910,7 +910,7 @@ def main():
         if contains_links:
             t_content = t_content + u"\n" + direct_link
         
-        msg = '**@{}** tweets {}: {}'.format(user, translated_tag t_content.encode('utf-8'))
+        msg = '**@{}** tweets {}: {}'.format(user, translated_tag, t_content.encode('utf-8'))
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
