@@ -789,9 +789,6 @@ def cmd_flickr_cover(message):
     if not photo_id:
         return
 
-    if not isinstance(message.channel, discord.channel.PrivateChannel):
-        return
-
     # Yay for magic numbers
     flickr_user_id = '135801662@N07'
 
