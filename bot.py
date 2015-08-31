@@ -783,7 +783,7 @@ def cmd_flickrcover(message):
     4. Look at the URL for its ID.
 
     Example:
-    https://www.flickr.com/photos/135801662@N07/**COPY_THIS_NUMBER**/in/album-72157655600356143/
+    /photos/135801662@N07/**COPY_THIS_NUMBER**/in/album-72157655600356143/
     """
     photo_id = message.content[len("!flickrcover"):].strip()
     if not photo_id:
