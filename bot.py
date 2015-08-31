@@ -672,7 +672,7 @@ def cmd_flickr(message):
       !flickr <URL>
 
     Example:
-      !flickr http://i.imgur.com/1Z7HFgw.png
+      !flickr http://i.imgur.com/pTGdJej.jpg
 
     Command you can use to access your album in the Titanium FC Flickr account.
     Typing the command **!flickr** with no arguments will share your album in channel.
@@ -762,7 +762,7 @@ def cmd_flickr(message):
     return
 
 
-def cmd_flickr_cover(message):
+def cmd_flickrcover(message):
     """
     **!flickrcover**
 
@@ -943,6 +943,7 @@ def main():
         handlers["!gifcat"] = cmd_catgif
 
         handlers["!flickr"] = cmd_flickr
+        handlers["!flickrcover"] = cmd_flickrcover
         handlers["!debug"] = cmd_debug
         #handlers["!strip"] = cmd_strip
 
