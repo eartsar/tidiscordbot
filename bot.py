@@ -914,7 +914,7 @@ def main():
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
-            client.send_message(channel, direct_link)
+            client.send_message(channel, msg)
 
     @tp.register_event("no_tweets")
     def no_tweets():
