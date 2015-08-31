@@ -896,7 +896,7 @@ def main():
 
         # Pre-processing
         t_content = tweet
-        contains_links = re.search(r"(?:\@|https?\://)\S+", s) is not None
+        contains_links = re.search(r"(?:\@|https?\://)\S+", t_content) is not None
         t_linkless = re.sub(r"(?:\@|https?\://)\S+", "", t_content)
         t_cleaned = ''.join(e for e in t_linkless if e.isalnum() or e in (' '))
 
