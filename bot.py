@@ -896,26 +896,25 @@ def main():
 
         # Pre-processing
         t_content = tweet
-        contains_links = re.search(r"(?:\@|https?\://)\S+", s) is not None
-        t_linkless = re.sub(r"(?:\@|https?\://)\S+", "", t_content)
-        t_cleaned = ''.join(e for e in t_linkless if e.isalnum() or e in (' '))
+        contains_links = re.search(r"(?:https?\://)\S+", t_content) is not None
+        t_content = re.sub(r"(?:https?\://)\S+", "URL", t_content)
+        t_cleaned = ''.join(e for e in t_content if e.isalnum() or e in (' '))
 
         direct_link = "https://twitter.com/Ti_DiscordBot/status/" + tweetdata['id_str']
-
-        if contains_links:
-            t_content = t_linkless
+        translated_tag = ''
 
         if mstranslate_api.detect_language(t_cleaned) != u'en':
-            t_content = t_content + u"\n        *" + mstranslate_api.translate(t_content, 'en') + "*"
+            t_content = mstranslate_api.translate(t_content, 'en')
+            translated_tag = "(translated)"
 
         if contains_links:
             t_content = t_content + u"\n" + direct_link
         
-        msg = '**{} tweets:** {}\n\n'.format(user, t_content.encode('utf-8'))
+        msg = '**@{}** tweets {}: {}'.format(user, translated_tag, t_content.encode('utf-8'))
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
-            client.send_message(channel, msg)
+            client.send_message(channel, direct_link)
 
     @tp.register_event("no_tweets")
     def no_tweets():
