@@ -905,7 +905,7 @@ def main():
 
         if mstranslate_api.detect_language(t_cleaned) != u'en':
             t_content = mstranslate_api.translate(t_content, 'en')
-            translated_tag = "(*translated*)"
+            translated_tag = "(translated)"
 
         if contains_links:
             t_content = t_content + u"\n" + direct_link
@@ -914,7 +914,11 @@ def main():
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
-            client.send_message(channel, msg)
+            # Make things even more clean in announcements
+            if channel.name == 'announcements':
+                client.send_message(channel, direct_link)
+            else:
+                client.send_message(channel, msg)
 
     @tp.register_event("no_tweets")
     def no_tweets():
