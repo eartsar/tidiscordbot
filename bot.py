@@ -897,7 +897,7 @@ def main():
         # Pre-processing
         t_content = tweet
         contains_links = re.search(r"(?:https?\://)\S+", t_content) is not None
-        t_content = re.sub(r"(?:\@|https?\://)\S+", "**<link>**", t_content)
+        t_content = re.sub(r"(?:https?\://)\S+", "**removed link**", t_content)
         t_cleaned = ''.join(e for e in t_content if e.isalnum() or e in (' '))
 
         direct_link = "https://twitter.com/Ti_DiscordBot/status/" + tweetdata['id_str']
