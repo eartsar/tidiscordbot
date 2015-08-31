@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 import traceback
 import json
@@ -894,14 +894,27 @@ def main():
                 continue
             channels[each_key.lower()] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
 
+        # Pre-processing
+        t_content = tweet
+        contains_links = re.search(r"(?:\@|https?\://)\S+", s) is not None
+        t_linkless = re.sub(r"(?:\@|https?\://)\S+", "", t_content)
+        t_cleaned = ''.join(e for e in t_linkless if e.isalnum() or e in (' '))
+
+        direct_link = "https://twitter.com/Ti_DiscordBot/status/" + tweetdata['id_str']
+
+        if contains_links:
+            t_content = t_linkless
+
+        if mstranslate_api.detect_language(t_cleaned) != u'en':
+            t_content = t_content + u"\n        *" + mstranslate_api.translate(t_content, 'en') + "*"
+
+        if contains_links:
+            t_content = t_content + u"\n" + direct_link
+        
+        msg = '**{} tweets:** {}\n\n'.format(user, t_content.encode('utf-8'))
+
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
-            t_content = tweet
-            cleaned = re.sub(r"(?:\@|https?\://)\S+", "", t_content)
-            cleaned = ''.join(e for e in cleaned if e.isalnum() or e in (' '))
-            if mstranslate_api.detect_language(cleaned) != u'en':
-                t_content = t_content + u"\n    (*Translation: " + mstranslate_api.translate(t_content, 'en') + "*) "
-            msg = '{} tweets: {}\n\n'.format(user, t_content.encode('utf-8'))
             client.send_message(channel, msg)
 
     @tp.register_event("no_tweets")
