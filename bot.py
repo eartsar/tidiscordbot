@@ -435,10 +435,14 @@ def cmd_vote(message):
     if not currentPoll:
         client.send_message(message.channel, "There is no poll underway.")
     choice = int(choice)
-    success = currentPoll.vote(message.author, choice)
+    msg = message.author.name + " casts a vote for **" + str(choice) + "**."
+    if currentPoll.already_voted(message.author.name):
+        msg = message.author.name + " changes their vote to **" + str(choice) + "**."
+
+    success = currentPoll.vote(message.author.name, choice)
     if not success:
         return
-    client.send_message(message.channel, message.author.name + " casts a vote for **" + str(choice) + "**.")
+    client.send_message(message.channel, msg)
     return
 
 

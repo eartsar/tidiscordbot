@@ -15,9 +15,16 @@ class Poll(object):
         self.size = len(options)
 
 
+    def already_voted(self, user):
+        return user in self.votes
+
+
     def vote(self, user, n):
-        if user in self.votes or n < 1 or n > self.size:
+        if n < 1 or n > self.size:
             return False
+
+        if user in self.votes:
+            self.tally[n - 1] -= 1
 
         self.votes[user] = n
         self.tally[n - 1] += 1
