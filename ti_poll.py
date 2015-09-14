@@ -24,7 +24,7 @@ class Poll(object):
             return False
 
         if user in self.votes:
-            self.tally[self.votes[user]] -= 1
+            self.tally[self.votes[user] - 1] -= 1
 
         self.votes[user] = n
         self.tally[n - 1] += 1
