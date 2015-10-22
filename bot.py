@@ -985,12 +985,10 @@ def main():
         
         if mstranslate_api.detect_language(t_cleaned) != u'en':
             t_translated = mstranslate_api.translate(t_nourl, 'en')
-
-        t_content = t_content + u"\n" + direct_link
         
         msg = direct_link
-        if t_translated:
-            msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
+        #if t_translated:
+        #    msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
