@@ -4,9 +4,10 @@ import traceback
 import json
 import re
 import random
-import urbandict
+import logging
 import time
 import requests
+import urbandict
 import discord
 import flickrapi
 import microsofttranslator
@@ -33,6 +34,12 @@ flickr_api = None
 
 # The actual API client that deals with Discord events.
 client = discord.Client()
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 # Object to manage poll tracking
 currentPoll = None
@@ -969,21 +976,21 @@ def main():
 
         # Pre-processing
         t_content = tweet
-        contains_links = re.search(r"(?:https?\://)\S+", t_content) is not None
-        t_content = re.sub(r"(?:https?\://)\S+", "URL", t_content)
-        t_cleaned = ''.join(e for e in t_content if e.isalnum() or e in (' '))
+        t_translated = None
+
+        t_nourl = re.sub(r"(?:https?\://)\S+", "URL", t_content)
+        t_cleaned = ''.join(e for e in t_nourl if e.isalnum() or e in (' '))
 
         direct_link = "https://twitter.com/Ti_DiscordBot/status/" + tweetdata['id_str']
-        translated_tag = ''
-
-        if mstranslate_api.detect_language(t_cleaned) != u'en':
-            t_content = mstranslate_api.translate(t_content, 'en')
-            translated_tag = "(translated)"
-
-        if contains_links:
-            t_content = t_content + u"\n" + direct_link
         
-        msg = '**@{}** tweets {}: {}'.format(user, translated_tag, t_content.encode('utf-8'))
+        if mstranslate_api.detect_language(t_cleaned) != u'en':
+            t_translated = mstranslate_api.translate(t_nourl, 'en')
+
+        t_content = t_content + u"\n" + direct_link
+        
+        msg = direct_link
+        if t_translated:
+            msg += u"\n  *Auto-Translate: " + t_translated.encode('utf-8') + u"*"
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
