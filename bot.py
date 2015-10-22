@@ -990,7 +990,7 @@ def main():
         
         msg = direct_link
         if t_translated:
-            msg += u"\n  *Auto-Translate: " + t_translated.encode('utf-8') + u"*"
+            msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
