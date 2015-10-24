@@ -7,9 +7,9 @@
 import sys
 
 if sys.version < '3':
-    from urllib import quote as urlquote
-    from urllib2 import urlopen
-    from HTMLParser import HTMLParser
+    from urllib.parse import quote as urlquote
+    from urllib.request import urlopen
+    from html.parser import HTMLParser
 else:
     from urllib.request import urlopen
     from urllib.parse import quote as urlquote

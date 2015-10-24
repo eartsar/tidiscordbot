@@ -39,7 +39,7 @@ class TrafficLight(object):
             else:
                 return STILL_RED_LIGHT
 
-        self.history[user.id] = filter(lambda x: (time.time() - x) < LIMITER_WINDOW, self.history[user.id])
+        self.history[user.id] = [x for x in self.history[user.id] if (time.time() - x) < LIMITER_WINDOW]
         if len(self.history[user.id]) >= LIMITER_COUNT:
             self.stopped[user.id] = time.time()
             return RED_LIGHT

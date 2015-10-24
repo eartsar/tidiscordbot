@@ -11,7 +11,7 @@ import urbandict
 import discord
 import flickrapi
 import microsofttranslator
-from urllib import FancyURLopener
+from urllib.request import FancyURLopener
 from ti_poll import Poll
 from ti_traffic import TrafficLight
 from ti_twitter import TwitterPoll
@@ -19,7 +19,7 @@ from ti_twitter import TwitterPoll
 try:
     import configparser
 except ImportError:
-    import ConfigParser as configparser
+    import configparser as configparser
 
 
 # TheCatAPI.com information
@@ -56,7 +56,7 @@ def on_message(message):
     global handlers
 
     if not handlers:
-        print "on_message abort - handlers dict not populated"
+        print("on_message abort - handlers dict not populated")
         return
 
     # for non PMs bot commands, manage spammage
@@ -76,15 +76,15 @@ def on_message(message):
 
 @client.event
 def on_ready():
-    print('Logged in as %s' % client.user.name)
-    print(client.user.id)
+    print(('Logged in as %s' % client.user.name))
+    print((client.user.id))
     print('------')
 
 
 @client.event
 def on_status(member):
     # update the last seen data file
-    print "!seen tracking - " + member.name + " - status: " + member.status
+    print("!seen tracking - " + member.name + " - status: " + member.status)
 
     with open("seen.dat", "r") as f:
         data = json.loads(f.read())
@@ -94,7 +94,7 @@ def on_status(member):
     with open("seen.dat", "w") as f:
         f.write(json.dumps(data))
     
-    print "    seen.dat file updated"
+    print("    seen.dat file updated")
 
 
 def cmd_test(message):
@@ -126,7 +126,7 @@ def cmd_help(message):
     ignores = ["!gifcat", "!upboat", "!downboat"]
 
     help_msg = "**Ti Discord Bot Functions:**\n" + \
-        ", ".join(sorted(filter(lambda x: x not in ignores, handlers.keys()))) + \
+        ", ".join(sorted([x for x in list(handlers.keys()) if x not in ignores])) + \
         "\nType !help <command> in a PM to **ti-bot** for more information on syntax and functions."
 
     cmd = message.content[len("!help "):].strip()
@@ -346,7 +346,7 @@ def cmd_lookup(message):
         try:
             client.send_message(message.channel, response.encode('utf-8'))
         except:
-            print "Unicode error in !lookup()"
+            print("Unicode error in !lookup()")
     return
 
 
@@ -402,7 +402,7 @@ def cmd_poll(message):
         return
 
     # !poll question;choice;choice...
-    opts = [s.strip() for s in filter(lambda x: x.strip() != "", opts.split(";"))]
+    opts = [s.strip() for s in [x for x in opts.split(";") if x.strip() != ""]]
 
     if len(opts) < 3 or len(opts) > 9:
         return
@@ -483,7 +483,7 @@ def cmd_seen(message):
         return
 
 
-    found = filter(lambda x: x.status != "offline" and x.name.lower() == key, message.channel.server.members)
+    found = [x for x in message.channel.server.members if x.status != "offline" and x.name.lower() == key]
 
     # The user is currently online
     if len(found) > 0:
@@ -733,7 +733,7 @@ def cmd_flickr(message):
             version = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36'
         MyOpener().retrieve(link, filename=fname)
     except:
-        print "Exception thrown while downloading source file."
+        print("Exception thrown while downloading source file.")
         return
 
     # upload photo to flickr
@@ -835,16 +835,16 @@ def cmd_flickrcover(message):
 
 
 def cmd_debug(message):
-    print "  content: " + str(message.content)
-    print "  timestamp: " + str(message.timestamp)
-    print "  tts: " + str(message.tts)
-    print "  mention_everyone: " + str(message.mention_everyone)
-    print "  embeds: " + str(message.embeds)
-    print "  id: " + str(message.id)
-    print "  channel: " + str(message.channel.name)
-    print "  author: " + str(message.author)
-    print "  mentions: " + str(message.mentions)
-    print "  attachments: " + str(message.attachments)
+    print("  content: " + str(message.content))
+    print("  timestamp: " + str(message.timestamp))
+    print("  tts: " + str(message.tts))
+    print("  mention_everyone: " + str(message.mention_everyone))
+    print("  embeds: " + str(message.embeds))
+    print("  id: " + str(message.id))
+    print("  channel: " + str(message.channel.name))
+    print("  author: " + str(message.author))
+    print("  mentions: " + str(message.mentions))
+    print("  attachments: " + str(message.attachments))
     return
 
 
@@ -876,7 +876,7 @@ def main():
 
     # Create it, if it doesn't exist.
     if not os.path.isfile("config.txt"):
-        print "No config file found. Generating one - please fill out information in " + os.path.join(os.getcwd(), "config.txt")
+        print("No config file found. Generating one - please fill out information in " + os.path.join(os.getcwd(), "config.txt"))
         with open('config.txt', 'w') as configfile:
             config['Discord'] = {'email': DEF_VAL, 'password': DEF_VAL}
             config['TheCatAPI.com'] = {'api_key': DEF_VAL}
@@ -917,7 +917,7 @@ def main():
     # Prevent execution if the configuration file isn't complete
     for arg in to_fill:
         if arg == DEF_VAL:
-            print "config.txt has not been fully completed. Fully fill out config.txt and re-run."
+            print("config.txt has not been fully completed. Fully fill out config.txt and re-run.")
             return
 
     # Create necessary files for data tracking
@@ -983,7 +983,7 @@ def main():
 
         direct_link = "https://twitter.com/Ti_DiscordBot/status/" + tweetdata['id_str']
         
-        if mstranslate_api.detect_language(t_cleaned) != u'en':
+        if mstranslate_api.detect_language(t_cleaned) != 'en':
             t_translated = mstranslate_api.translate(t_nourl, 'en')
         
         msg = direct_link
@@ -991,7 +991,7 @@ def main():
         #    msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
-        for channel in filter(lambda x: x is not None, [default] if user not in channels else channels[user]):
+        for channel in [x for x in [default] if user not in channels else channels[user] if x is not None]:
             client.send_message(channel, msg)
 
     @tp.register_event("no_tweets")
@@ -1002,29 +1002,29 @@ def main():
 
     # Set the flicker API
     flickr_api = flickrapi.FlickrAPI(FLICKR_API_KEY, FLICKR_SECRET_KEY)
-    if not flickr_api.token_valid(perms=unicode("write")):
-        flickr_api.get_request_token(oauth_callback=unicode('oob'))
-        authorize_url = flickr_api.auth_url(perms=unicode('write'))
-        print "!!!!!!!!!"
-        print "FLICKR TOKEN INVALID. Authenticate here: " + authorize_url
-        verifier = unicode(raw_input('Verifier code: '))
-        flickr_api.get_access_token(unicode(verifier))
+    if not flickr_api.token_valid(perms=str("write")):
+        flickr_api.get_request_token(oauth_callback=str('oob'))
+        authorize_url = flickr_api.auth_url(perms=str('write'))
+        print("!!!!!!!!!")
+        print("FLICKR TOKEN INVALID. Authenticate here: " + authorize_url)
+        verifier = str(input('Verifier code: '))
+        flickr_api.get_access_token(str(verifier))
 
     # Connect to Discord, and begin listening to events.
     client.login(email, password)
     try:
         client.run() #This blocks the main thread.
     except KeyboardInterrupt:
-        print("\nti-bot: Closing API Client..."),
+        print(("\nti-bot: Closing API Client..."), end=' ')
         client.logout()
         print("Done.")
-        print("ti-bot: Closing Twitter Listener..."),
-        print "Done."
+        print(("ti-bot: Closing Twitter Listener..."), end=' ')
+        print("Done.")
         tp.stop()
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
-    print "SEE YOU SPACE COWBOY..."
+    print("SEE YOU SPACE COWBOY...")
 
 
 if __name__ == '__main__':

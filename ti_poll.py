@@ -10,7 +10,7 @@ class Poll(object):
         self.question = question
         self.created_at = time.time()
         self.options = options
-        self.tally = dict(zip([_ for _ in range(len(options))], [0 for _ in options]))
+        self.tally = dict(list(zip([_ for _ in range(len(options))], [0 for _ in options])))
         self.votes = {}
         self.size = len(options)
 
