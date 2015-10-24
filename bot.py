@@ -835,16 +835,9 @@ def cmd_flickrcover(message):
 
 
 def cmd_debug(message):
-    print("  content: " + str(message.content))
-    print("  timestamp: " + str(message.timestamp))
-    print("  tts: " + str(message.tts))
-    print("  mention_everyone: " + str(message.mention_everyone))
-    print("  embeds: " + str(message.embeds))
-    print("  id: " + str(message.id))
-    print("  channel: " + str(message.channel.name))
-    print("  author: " + str(message.author))
-    print("  mentions: " + str(message.mentions))
-    print("  attachments: " + str(message.attachments))
+    content = message.content.strip()[len("!debug "):]
+    result = "```\n" + str(eval(content))  + "```\n"
+    client.send_message(message.channel, result)
     return
 
 
@@ -1015,10 +1008,10 @@ def main():
     try:
         client.run() #This blocks the main thread.
     except KeyboardInterrupt:
-        print(("\nti-bot: Closing API Client..."), end=' ')
+        print("\nti-bot: Closing API Client...", end=' ')
         client.logout()
         print("Done.")
-        print(("ti-bot: Closing Twitter Listener..."), end=' ')
+        print("ti-bot: Closing Twitter Listener...", end=' ')
         print("Done.")
         tp.stop()
     except:
