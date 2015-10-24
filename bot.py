@@ -991,7 +991,7 @@ def main():
         #    msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
-        for channel in [x for x in [default] if user not in channels else channels[user] if x is not None]:
+        for channel in filter(lambda x: x is not None, channels.get(user, [default])):
             client.send_message(channel, msg)
 
     @tp.register_event("no_tweets")
