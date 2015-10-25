@@ -344,7 +344,7 @@ def cmd_lookup(message):
     # TODO: Need to make sure we're not sending unicode that the API can't handle here
     if response:
         try:
-            client.send_message(message.channel, response.encode('utf-8'))
+            client.send_message(message.channel, response)
         except:
             print("Unicode error in !lookup()")
     return
