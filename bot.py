@@ -738,8 +738,13 @@ def cmd_flickr(message):
 
     # upload photo to flickr
     response = None
-    with open(fname) as f:
-        response = flickr_api.upload(f.name, fileobj=f)
+    try:
+        with open(fname) as f:
+            response = flickr_api.upload(f.name, fileobj=f)
+    except:
+        print("Problem uploading " + fname)
+        os.remove(fname)
+        return
 
     # cleanup the file stored locally
     os.remove(fname)
