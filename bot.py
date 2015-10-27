@@ -739,7 +739,7 @@ def cmd_flickr(message):
     # upload photo to flickr
     response = None
     try:
-        with open(fname) as f:
+        with open(fname, 'rb') as f:
             response = flickr_api.upload(f.name, fileobj=f)
     except:
         print("Problem uploading " + fname)
