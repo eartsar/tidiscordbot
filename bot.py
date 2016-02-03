@@ -880,6 +880,21 @@ async def cmd_skip():
     pass
 
 
+@bot.command(name="current")
+async def cmd_current():
+    """
+    **!current**
+
+    Usage:
+      !current
+
+    Checks the current playing song in the Music channel.
+    Usable only in #youtube.
+    """
+    # This function is only defined for the docs.
+    pass
+
+
 def main():
     global alaises, CAT_API_KEY, flickr_api, mstranslate_api
 
