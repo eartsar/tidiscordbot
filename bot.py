@@ -567,45 +567,8 @@ async def cmd_wipe(ctx):
         except:
             return
 
-    to_remove = [m for m in bot.logs_from(message.channel, limit=num + 1)]
-    for log_message in to_remove:
-        bot.delete_message(log_message)
-
-
-@bot.command(pass_context=True, name="wipebot")
-async def cmd_wipebot(ctx):
-    """
-    **!wipebot**
-
-    Usage:
-      !wipebot <number> <history>
-
-    Example:
-      !wipebot 10 2000
-
-    Wipes a certain number of !cmd messages and bot responses from the channel.
-    This crawls over *history* messages, deleting up to *number* of them that apply.
-    """
-    message = ctx.message
-    # TODO: check role
-    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
-        return
-
-    opts = message.content.split(" ")
-    if len(opts) != 3:
-        return
-    history = None
-    try:
-        num = int(opts[1])
-        history = int(opts[2])
-    except:
-        return
-
-    to_remove = [m for m in bot.logs_from(message.channel, limit=history)]
-    for log_message in to_remove:
-        if log_message.author.name != "ti-bot" and not log_message.content.startswith("!"):
-            continue
-        bot.delete_message(log_message)
+    async for log_message in bot.logs_from(message.channel, limit=num + 1):
+        await bot.delete_message(log_message)
 
 
 @bot.command(pass_context=True, name="flickr")
