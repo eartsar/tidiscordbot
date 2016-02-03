@@ -48,34 +48,8 @@ currentPoll = None
 # Object to manage spam tracking
 trafficLight = TrafficLight()
 
-# Dictionary of "!function" to cmd_function(message) handlers.
-handlers = None
-
 tidesc = "Ti bot!"
 bot = commands.Bot(command_prefix='!', description=tidesc)
-
-
-# @bot.event
-# async def on_message(message):
-#     global handlers
-
-#     if not handlers:
-#         print("on_message abort - handlers dict not populated")
-#         return
-
-#     # for non PMs bot commands, manage spammage
-#     if not isinstance(message.channel, discord.channel.PrivateChannel) and message.content.startswith("!"):
-#         proceed = trafficLight.log(client, message.author)
-#         if not proceed:
-#             return
-
-#     tokens = message.content.split(" ")
-#     cmd_token = tokens[0]
-#     if cmd_token not in handlers:
-#         return
-
-#     # call the handler
-#     handlers[cmd_token](message)
     
 
 @bot.event
@@ -667,7 +641,7 @@ async def cmd_flickr(ctx):
     
     # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
-        bot.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
+        await bot.say("**Flickr functionality requires renewed access. Contact Fura.**")
         return
 
     if not link:
@@ -677,7 +651,7 @@ async def cmd_flickr(ctx):
                 album_id = photoset.attrib['id']
         if album_id:
             album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
-            bot.send_message(message.channel, message.author.name + " shares their album!\n" + album_link)
+            await bot.say(message.author.name + " shares their album!\n" + album_link)
         return
 
     # Validate the linked image type
@@ -736,8 +710,7 @@ async def cmd_flickr(ctx):
     # Get the link to share
     album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
     s = message.author.name + " has uploaded a new photo to their album!\n" + album_link
-    bot.send_message(message.channel, s)
-    return
+    await bot.say(s)
 
 
 @bot.command(pass_context=True, name="flickrcover")
@@ -830,7 +803,7 @@ def get_channel(client, name):
 
 
 def main():
-    global handlers, alaises, CAT_API_KEY, flickr_api, mstranslate_api
+    global alaises, CAT_API_KEY, flickr_api, mstranslate_api
 
     # Deal with the configuration file.
     config = configparser.ConfigParser()
@@ -894,32 +867,6 @@ def main():
     if not os.path.isfile("seen.dat"):
         with open('seen.dat', 'w') as f:
             f.write("{}")
-
-    # Populate the handler dictionary with function references.
-    if not handlers:
-        handlers = {}
-        handlers["!boat"] = cmd_boat
-        handlers["!cat"] = cmd_cat
-        handlers["!catgif"] = cmd_catgif
-        handlers["!upboat"] = cmd_upboat
-        handlers["!downboat"] = cmd_downboat
-        handlers["!lookup"] = cmd_lookup
-        handlers["!poll"] = cmd_poll
-        handlers["!seen"] = cmd_seen
-        handlers["!test"] = cmd_test
-        handlers["!vote"] = cmd_vote
-        handlers["!wipe"] = cmd_wipe
-        handlers["!wipebot"] = cmd_wipebot
-
-        handlers["!random"] = cmd_random
-        handlers["!roll"] = cmd_roll
-        handlers["!coinflip"] = cmd_flip
-        handlers["!gifcat"] = cmd_catgif
-
-        handlers["!flickr"] = cmd_flickr
-        handlers["!flickrcover"] = cmd_flickrcover
-        handlers["!debug"] = cmd_debug
-        #handlers["!strip"] = cmd_strip
 
     # Twitter listener
     tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
