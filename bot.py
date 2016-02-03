@@ -749,7 +749,7 @@ async def cmd_flickrcover(ctx):
     
     # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
-        bot.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
+        await bot.say("**Flickr functionality requires renewed access. Contact Fura.**")
         return
 
     # Check to see if the poster has a flickr album already
@@ -765,15 +765,14 @@ async def cmd_flickrcover(ctx):
     try:
         flickr_api.photosets.setPrimaryPhoto(photoset_id=album_id, photo_id=photo_id)
     except:
-        bot.send_message(message.author, "Cannot set Flickr album cover. \
+        await bot.send_message(message.author, "Cannot set Flickr album cover. \
             Invalid image ID. Check **!help !flickrcover** for instructions.")
         return
 
     # Get the link to share
     album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
     s = "You changed your album cover successfully.\n" + album_link
-    bot.send_message(message.author, s)
-    return
+    await bot.send_message(message.author, s)
 
 
 @bot.command(pass_context=True, name="debug")
@@ -781,8 +780,7 @@ async def cmd_debug(ctx):
     message = ctx.message
     content = message.content.strip()[len("!debug "):]
     result = "```\n" + str(eval(content))  + "```\n"
-    bot.send_message(message.channel, result)
-    return
+    await bot.send_message(message.channel, result)
 
 
 def get_channel(client, name):
@@ -869,46 +867,46 @@ def main():
             f.write("{}")
 
     # Twitter listener
-    tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
-        twitter_consumer_key, twitter_consumer_secret, polling_seconds=70)
+    # tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
+    #     twitter_consumer_key, twitter_consumer_secret, polling_seconds=70)
 
-    @tp.register_event("new_tweet")
-    def new_tweet(user, tweet, tweetdata):
-        # Map twitter users to channels
-        user = user.lower()
-        default = get_channel(client, twitter_default_channel)
-        channels = {}
+    # @tp.register_event("new_tweet")
+    # def new_tweet(user, tweet, tweetdata):
+    #     # Map twitter users to channels
+    #     user = user.lower()
+    #     default = get_channel(client, twitter_default_channel)
+    #     channels = {}
 
-        for (each_key, each_val) in config.items('Twitter Feed'):
-            if each_key == 'default_channel':
-                continue
-            channels[each_key.lower()] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
+    #     for (each_key, each_val) in config.items('Twitter Feed'):
+    #         if each_key == 'default_channel':
+    #             continue
+    #         channels[each_key.lower()] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
 
-        # Pre-processing
-        t_content = tweet
-        t_translated = None
+    #     # Pre-processing
+    #     t_content = tweet
+    #     t_translated = None
 
-        t_nourl = re.sub(r"(?:https?\://)\S+", "URL", t_content)
-        t_cleaned = ''.join(e for e in t_nourl if e.isalnum() or e in (' '))
+    #     t_nourl = re.sub(r"(?:https?\://)\S+", "URL", t_content)
+    #     t_cleaned = ''.join(e for e in t_nourl if e.isalnum() or e in (' '))
 
-        direct_link = "https://twitter.com/Ti_DiscordBot/status/" + tweetdata['id_str']
+    #     direct_link = "https://twitter.com/Ti_DiscordBot/status/" + tweetdata['id_str']
         
-        if mstranslate_api.detect_language(t_cleaned) != 'en':
-            t_translated = mstranslate_api.translate(t_nourl, 'en')
+    #     if mstranslate_api.detect_language(t_cleaned) != 'en':
+    #         t_translated = mstranslate_api.translate(t_nourl, 'en')
         
-        msg = direct_link
-        #if t_translated:
-        #    msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
+    #     msg = direct_link
+    #     #if t_translated:
+    #     #    msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
 
-        # Get the list of channels assigned to the user (or a default), remove any that don't exist
-        for channel in filter(lambda x: x is not None, channels.get(user, [default])):
-            bot.send_message(channel, msg)
+    #     # Get the list of channels assigned to the user (or a default), remove any that don't exist
+    #     for channel in filter(lambda x: x is not None, channels.get(user, [default])):
+    #         await bot.send_message(channel, msg)
 
-    @tp.register_event("no_tweets")
-    def no_tweets():
-        return
+    # @tp.register_event("no_tweets")
+    # def no_tweets():
+    #     return
 
-    tp.start()
+    # tp.start()
 
     # Set the flicker API
     flickr_api = flickrapi.FlickrAPI(FLICKR_API_KEY, FLICKR_SECRET_KEY)
@@ -927,9 +925,9 @@ def main():
         print("\nti-bot: Closing API bot...", end=' ')
         bot.logout()
         print("Done.")
-        print("ti-bot: Closing Twitter Listener...", end=' ')
-        print("Done.")
-        tp.stop()
+        # print("ti-bot: Closing Twitter Listener...", end=' ')
+        # print("Done.")
+        # tp.stop()
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
