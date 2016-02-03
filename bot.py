@@ -102,6 +102,12 @@ async def yt_channel_on_message(message):
         if bot.player:
             bot.player.stop()
             return
+    elif message.content.startswith("!current"):
+        if not bot.is_playing() or not bot.player:
+            await bot.send_message(message.channel, "No song is currently playing.")
+            return
+        await bot.send_message(message.channel, "**♪♪Now Playing♪♪**: " + bot.player.title)
+        return
 
     link = message.content.strip()
     m = re.match("^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$", link)
