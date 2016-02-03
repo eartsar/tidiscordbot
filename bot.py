@@ -121,7 +121,7 @@ async def next_song():
         if bot.songs.empty():
             return
         bot.current = await bot.songs.get()
-        bot.player = await bot.voice.create_ytdl_player(bot.current.song, after=bot.toggle_next_song)
+        bot.player = await bot.voice.create_ytdl_player(bot.current.song, use_avconv=True, after=bot.toggle_next_song)
         bot.player.start()
         await bot.send_message(bot.current.channel, "**♪♪Now Playing♪♪**: " + bot.player.title)
         await bot.play_next_song.wait()
