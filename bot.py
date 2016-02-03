@@ -1,3 +1,5 @@
+import discord
+import asyncio
 import os
 import sys
 import traceback
@@ -8,13 +10,14 @@ import logging
 import time
 import requests
 import urbandict
-import discord
 import flickrapi
 import microsofttranslator
 from urllib.request import FancyURLopener
 from ti_poll import Poll
 from ti_traffic import TrafficLight
 from ti_twitter import TwitterPoll
+from discord.ext import commands
+
 
 try:
     import configparser
@@ -33,8 +36,6 @@ mstranslate_api = None
 flickr_api = None
 
 # The actual API client that deals with Discord events.
-client = discord.Client()
-
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -50,39 +51,42 @@ trafficLight = TrafficLight()
 # Dictionary of "!function" to cmd_function(message) handlers.
 handlers = None
 
+tidesc = "Ti bot!"
+bot = commands.Bot(command_prefix='!', description=tidesc)
 
-@client.event
-def on_message(message):
-    global handlers
 
-    if not handlers:
-        print("on_message abort - handlers dict not populated")
-        return
+# @bot.event
+# async def on_message(message):
+#     global handlers
 
-    # for non PMs bot commands, manage spammage
-    if not isinstance(message.channel, discord.channel.PrivateChannel) and message.content.startswith("!"):
-        proceed = trafficLight.log(client, message.author)
-        if not proceed:
-            return
+#     if not handlers:
+#         print("on_message abort - handlers dict not populated")
+#         return
 
-    tokens = message.content.split(" ")
-    cmd_token = tokens[0]
-    if cmd_token not in handlers:
-        return
+#     # for non PMs bot commands, manage spammage
+#     if not isinstance(message.channel, discord.channel.PrivateChannel) and message.content.startswith("!"):
+#         proceed = trafficLight.log(client, message.author)
+#         if not proceed:
+#             return
 
-    # call the handler
-    handlers[cmd_token](message)
+#     tokens = message.content.split(" ")
+#     cmd_token = tokens[0]
+#     if cmd_token not in handlers:
+#         return
+
+#     # call the handler
+#     handlers[cmd_token](message)
     
 
-@client.event
-def on_ready():
-    print(('Logged in as %s' % client.user.name))
-    print((client.user.id))
+@bot.event
+async def on_ready():
+    print(('Logged in as %s' % bot.user.name))
+    print((bot.user.id))
     print('------')
 
 
-@client.event
-def on_status(member):
+@bot.event
+async def on_status(member):
     # update the last seen data file
     print("!seen tracking - " + member.name + " - status: " + member.status)
 
@@ -97,7 +101,8 @@ def on_status(member):
     print("    seen.dat file updated")
 
 
-def cmd_test(message):
+@bot.command(name="test")
+async def cmd_test():
     """
     **!test**
 
@@ -106,39 +111,11 @@ def cmd_test(message):
 
     Tests to make sure the bot is listening to messages.
     """
-    client.send_message(message.channel, 'Ti Discord Bot is up and running!')
-    return
+    await bot.say('Ti Discord Bot is up and running!')
 
 
-def cmd_help(message):
-    """
-    **!help**
-
-    Usage:
-      !help [command]
-
-    Gets more information on commands. Specify a command for more detailed 
-    information.
-    """
-    global handlers
-
-    # these are aliases or shortcuts, so don't bother listing them
-    ignores = ["!gifcat", "!upboat", "!downboat"]
-
-    help_msg = "**Ti Discord Bot Functions:**\n" + \
-        ", ".join(sorted([x for x in list(handlers.keys()) if x not in ignores])) + \
-        "\nType !help <command> in a PM to **ti-bot** for more information on syntax and functions."
-
-    cmd = message.content[len("!help "):].strip()
-    if not cmd or cmd not in handlers:
-        client.send_message(message.channel, help_msg)
-        return
-
-    client.send_message(message.author, handlers[cmd].__doc__)
-    return
-
-
-def cmd_cat(message):
+@bot.command(name="cat")
+async def cmd_cat():
     """
     **!cat**
 
@@ -147,14 +124,11 @@ def cmd_cat(message):
 
     Post a random picture (png format) of a cat. See **!catgif** for moar cats.
     """
-    opt = message.content[len("!cat "):].strip()
-    if opt:
-        return
-    _cmd_cat(message)
-    return
+    await _cmd_cat()
 
 
-def cmd_catgif(message):
+@bot.command(name="catgif")
+async def cmd_catgif():
     """
     **!catgif**
 
@@ -163,21 +137,17 @@ def cmd_catgif(message):
 
     Post a random picture (gif format) of a cat. See **!cat** for moar cats.
     """
-    opt = message.content[len("!catgif "):].strip()
-    if opt:
-        return
-    _cmd_cat(message, file_type="gif")
-    return
+    await _cmd_cat(file_type="gif")
 
 
-def _cmd_cat(message, file_type="png"):
+async def _cmd_cat(file_type="png"):
     """Do work function for cats."""
     r = requests.get(CAT_API_URL, {"api_key": CAT_API_KEY, "format": "src", "type": file_type, "size": "small"})
-    client.send_message(message.channel, r.url)
-    return
+    await bot.say(r.url)
 
 
-def cmd_boat(message):
+@bot.command(pass_context=True, name="boat")
+async def cmd_boat(ctx):
     """
     **!boat**
 
@@ -196,6 +166,7 @@ def cmd_boat(message):
 
     ***!upboat*** *and* ***!downboat*** *are shorthands for this command.*
     """
+    message = ctx.message
     content = message.content
 
     # load the data as json
@@ -219,7 +190,7 @@ def cmd_boat(message):
         for k in bottom_keys[:5]:
             s = s + k.lower() + ": " + str(data[k]) + "\n"
         
-        client.send_message(message.channel, s)
+        await bot.say(s)
         return
     
     op = thing[-2:]
@@ -231,15 +202,14 @@ def cmd_boat(message):
     # !boat <thing> - list the boat of the thing
     if op not in ("++", "--"):
         if kthing in data:
-            client.send_message(message.channel, thing[0].upper() + thing[1:] + " has " + str(data[kthing]) + " boats.")
+            await bot.say(thing[0].upper() + thing[1:] + " has " + str(data[kthing]) + " boats.")
         return
 
     thing = thing[:-2]
-    _cmd_boat(message, thing, op, data)
-    return
+    await _cmd_boat(message, thing, op, data)
 
 
-def _cmd_boat(message, thing, op, data):
+async def _cmd_boat(message, thing, op, data):
     """Does the actual incrementing of the boats, and prints stuff."""
     kthing = thing.lower()
     sop = ""
@@ -256,14 +226,13 @@ def _cmd_boat(message, thing, op, data):
         else:
             data[kthing] = data[kthing] - 1
 
-    client.send_message(message.channel, sop + " for " + thing + "! " + thing[0].upper() + thing[1:] + " now has " + str(data[kthing]) + " boats.")
+    await bot.say(sop + " for " + thing + "! " + thing[0].upper() + thing[1:] + " now has " + str(data[kthing]) + " boats.")
     with open("boats.dat", "w") as f:
         f.write(json.dumps(data))
-    
-    return
 
 
-def cmd_upboat(message):
+@bot.command(pass_context=True, name="upboat")
+async def cmd_upboat(ctx):
     """
     **!upboat**
 
@@ -275,10 +244,11 @@ def cmd_upboat(message):
     
     Shorthand for **!boat <thing>++**
     """
-    cmd_shortboat(message)
+    await cmd_shortboat(ctx)
 
 
-def cmd_downboat(message):
+@bot.command(pass_context=True, name="downboat")
+async def cmd_downboat(ctx):
     """
     **!downboat**
 
@@ -290,11 +260,12 @@ def cmd_downboat(message):
     
     Shorthand for **!boat <thing>--**
     """
-    cmd_shortboat(message)
+    await cmd_shortboat(ctx)
 
 
-def cmd_shortboat(message):
+async def cmd_shortboat(ctx):
     """Do work function of upboat/downboat shorthand functions."""
+    message = ctx.message
     tokens = message.content.split(" ")
     cmd = tokens[0]
     thing = message.content[len(cmd):].strip()
@@ -309,11 +280,11 @@ def cmd_shortboat(message):
         op = "++"
     else:
         op = "--"
-    _cmd_boat(message, thing, op, data)
-    return
+    await _cmd_boat(message, thing, op, data)
 
 
-def cmd_lookup(message):
+@bot.command(pass_context=True, name="lookup")
+async def cmd_lookup(ctx):
     """
     **!lookup**
 
@@ -326,6 +297,7 @@ def cmd_lookup(message):
     Looks up the term on Merriam-Webster's online dictionary.
     And by Merriam-Webster, we do mean Urban Dictionary.
     """
+    message = ctx.message
     word = message.content[len("!lookup "):].strip()
     if not word:
         return
@@ -344,13 +316,14 @@ def cmd_lookup(message):
     # TODO: Need to make sure we're not sending unicode that the API can't handle here
     if response:
         try:
-            client.send_message(message.channel, response)
+            bot.send_message(message.channel, response)
         except:
             print("Unicode error in !lookup()")
     return
 
 
-def cmd_poll(message):
+@bot.command(pass_context=True, name="poll")
+async def cmd_poll(ctx):
     """
     **!poll**
 
@@ -371,34 +344,35 @@ def cmd_poll(message):
     *Only one poll may be active at a time.*
     """
     global currentPoll
+    message = ctx.message
     opts = message.content[len("!poll "):].strip()
 
     if isinstance(message.channel, discord.channel.PrivateChannel):
-        client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
     
     # !poll - display the poll
     if not opts:
         if currentPoll:
-            client.send_message(message.channel, currentPoll.pretty_print())
+            bot.send_message(message.channel, currentPoll.pretty_print())
         else:
-            client.send_message(message.channel, "There is no poll underway.")
+            bot.send_message(message.channel, "There is no poll underway.")
         return
 
     # !poll close - close the poll
     if opts == "close":
         if not currentPoll:
-            client.send_message(message.channel, "There is no poll underway.")
+            bot.send_message(message.channel, "There is no poll underway.")
         else:
             if currentPoll.can_close(message.author):
-                client.send_message(message.channel, "**Poll closed!**\n" + currentPoll.pretty_print())
+                bot.send_message(message.channel, "**Poll closed!**\n" + currentPoll.pretty_print())
                 currentPoll = None
             else:
-                client.send_message(message.channel, "The poll is open for another %.0f seconds." % currentPoll.time_left())
+                bot.send_message(message.channel, "The poll is open for another %.0f seconds." % currentPoll.time_left())
         return
 
     if currentPoll:
-        client.send_message(message.channel, "A poll is already underway. Let that one finish first before starting another.")
+        bot.send_message(message.channel, "A poll is already underway. Let that one finish first before starting another.")
         return
 
     # !poll question;choice;choice...
@@ -413,10 +387,11 @@ def cmd_poll(message):
 
     currentPoll = Poll(message.author, opts[0], opts[1:])
     s = "**" + message.author.name + " starts a poll.**\n" + currentPoll.pretty_print()
-    client.send_message(message.channel, s)
+    bot.send_message(message.channel, s)
 
 
-def cmd_vote(message):
+@bot.command(pass_context=True, name="vote")
+async def cmd_vote(ctx):
     """
     **!vote**
 
@@ -428,19 +403,20 @@ def cmd_vote(message):
     
     Votes for a choice in the current poll.
     """
+    message = ctx.message
     choice = message.content[len("!vote "):].strip()
     if not choice:
         return
 
     if isinstance(message.channel, discord.channel.PrivateChannel):
-        client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
 
     if len(choice) != 1 or choice not in "1234566789":
         return
 
     if not currentPoll:
-        client.send_message(message.channel, "There is no poll underway.")
+        bot.send_message(message.channel, "There is no poll underway.")
     choice = int(choice)
     msg = message.author.name + " casts a vote for **" + str(choice) + "**."
     if currentPoll.already_voted(message.author.name):
@@ -449,11 +425,12 @@ def cmd_vote(message):
     success = currentPoll.vote(message.author.name, choice)
     if not success:
         return
-    client.send_message(message.channel, msg)
+    bot.send_message(message.channel, msg)
     return
 
 
-def cmd_seen(message):
+@bot.command(pass_context=True, name="seen")
+async def cmd_seen(ctx):
     """
     **!seen**
 
@@ -468,6 +445,7 @@ def cmd_seen(message):
 
     *The user's name must be entered in full.*
     """
+    message = ctx.message
     user = message.content[len("!seen "):].strip()
     key = user.lower()
     if not user:
@@ -479,7 +457,7 @@ def cmd_seen(message):
 
     # PMs are separate from servers, so running this in a PM doesn't make sense
     if isinstance(message.channel, discord.channel.PrivateChannel):
-        client.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
 
 
@@ -487,7 +465,7 @@ def cmd_seen(message):
 
     # The user is currently online
     if len(found) > 0:
-        client.send_message(message.channel, user + " is currently **online**.")
+        bot.send_message(message.channel, user + " is currently **online**.")
 
         # Haven't seen the user - add to the dat
         if key not in data:
@@ -500,7 +478,7 @@ def cmd_seen(message):
 
     # The user isn't online, but hasn't been tracked
     if key not in data:
-        client.send_message(message.channel, "I haven't seen " + user + " before.")
+        bot.send_message(message.channel, "I haven't seen " + user + " before.")
         return
 
     t = data[key]
@@ -509,13 +487,14 @@ def cmd_seen(message):
     hours = tdiff // 3600 % 24
     minutes = tdiff // 60 % 60
     seconds = tdiff % 60
-    client.send_message(message.channel, user[0].upper() + user[1:] + \
+    bot.send_message(message.channel, user[0].upper() + user[1:] + \
         " was last seen **%.0f days, %.0f hours, %.0f minutes, and %.0f seconds ago**." \
         % (days, hours, minutes, seconds))
     return
 
 
-def cmd_roll(message):
+@bot.command(pass_context=True, name="roll")
+async def cmd_roll(ctx):
     """
     **!roll**
 
@@ -531,6 +510,7 @@ def cmd_roll(message):
 
     *Also see* ***!coinflip*** and ***!random*** *for more random games.*
     """
+    message = ctx.message
     opt = message.content[len("!roll "):].strip()
 
     num = None
@@ -562,11 +542,12 @@ def cmd_roll(message):
 
     results = [str(_) for _ in results]
     s = "*Dice roll! " + message.author.name + " rolls* ***" + opt + "!***\n    " + ", ".join(results)
-    client.send_message(message.channel, s)
+    bot.send_message(message.channel, s)
     return
 
 
-def cmd_flip(message):
+@bot.command(pass_context=True, name="flip")
+async def cmd_flip(ctx):
     """
     **!coinflip**
 
@@ -577,6 +558,7 @@ def cmd_flip(message):
 
     *Also see* ***!roll*** and ***!random*** *for more random games.*
     """
+    message = ctx.message
     opt = message.content[len("!coinflip "):].strip()
 
     if opt:
@@ -587,11 +569,12 @@ def cmd_flip(message):
         result = "tails"
 
     s = "*" + message.author.name + " flips a coin...* ***" + str(result) + "!***"
-    client.send_message(message.channel, s)
+    bot.send_message(message.channel, s)
     return
 
 
-def cmd_random(message):
+@bot.command(pass_context=True, name="random")
+async def cmd_random(ctx):
     """
     **!random**
 
@@ -602,6 +585,7 @@ def cmd_random(message):
 
     *Also see* ***!roll*** and ***!coinflip*** *for more random games.*
     """
+    message = ctx.message
     opt = message.content[len("!random "):].strip()
 
     if opt:
@@ -610,11 +594,12 @@ def cmd_random(message):
     result = random.randint(1, 99)
 
     s = "*Dice roll! " + message.author.name + " rolls* ***" + str(result) + "!***"
-    client.send_message(message.channel, s)
+    bot.send_message(message.channel, s)
     return
 
 
-def cmd_wipe(message):
+@bot.command(pass_context=True, name="wipe")
+async def cmd_wipe(ctx):
     """
     **!wipe**
 
@@ -623,6 +608,7 @@ def cmd_wipe(message):
 
     Wipes a certain number of messages from the channel. By default, this is one.
     """
+    message = ctx.message
     # TODO: check role
     if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
         return
@@ -635,12 +621,13 @@ def cmd_wipe(message):
         except:
             return
 
-    to_remove = [m for m in client.logs_from(message.channel, limit=num + 1)]
+    to_remove = [m for m in bot.logs_from(message.channel, limit=num + 1)]
     for log_message in to_remove:
-        client.delete_message(log_message)
+        bot.delete_message(log_message)
 
 
-def cmd_wipebot(message):
+@bot.command(pass_context=True, name="wipebot")
+async def cmd_wipebot(ctx):
     """
     **!wipebot**
 
@@ -653,6 +640,7 @@ def cmd_wipebot(message):
     Wipes a certain number of !cmd messages and bot responses from the channel.
     This crawls over *history* messages, deleting up to *number* of them that apply.
     """
+    message = ctx.message
     # TODO: check role
     if not isinstance(message.channel, discord.channel.PrivateChannel) and message.author.name != "Fura Barumaru":
         return
@@ -667,14 +655,15 @@ def cmd_wipebot(message):
     except:
         return
 
-    to_remove = [m for m in client.logs_from(message.channel, limit=history)]
+    to_remove = [m for m in bot.logs_from(message.channel, limit=history)]
     for log_message in to_remove:
         if log_message.author.name != "ti-bot" and not log_message.content.startswith("!"):
             continue
-        client.delete_message(log_message)
+        bot.delete_message(log_message)
 
 
-def cmd_flickr(message):
+@bot.command(pass_context=True, name="flickr")
+async def cmd_flickr(ctx):
     """
     **!flickr**
 
@@ -696,6 +685,7 @@ def cmd_flickr(message):
           the album cover to this picture. This can be changed with **!flickrcover**
     - Misuse of this command will be met with Fura's wrath.
     """
+    message = ctx.message
     link = message.content[len("!flickr "):].strip()
 
     # Yay for magic numbers
@@ -705,7 +695,7 @@ def cmd_flickr(message):
     
     # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
-        client.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
+        bot.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
         return
 
     if not link:
@@ -715,7 +705,7 @@ def cmd_flickr(message):
                 album_id = photoset.attrib['id']
         if album_id:
             album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
-            client.send_message(message.channel, message.author.name + " shares their album!\n" + album_link)
+            bot.send_message(message.channel, message.author.name + " shares their album!\n" + album_link)
         return
 
     # Validate the linked image type
@@ -774,11 +764,12 @@ def cmd_flickr(message):
     # Get the link to share
     album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
     s = message.author.name + " has uploaded a new photo to their album!\n" + album_link
-    client.send_message(message.channel, s)
+    bot.send_message(message.channel, s)
     return
 
 
-def cmd_flickrcover(message):
+@bot.command(pass_context=True, name="flickrcover")
+async def cmd_flickrcover(ctx):
     """
     **!flickrcover**
 
@@ -801,6 +792,7 @@ def cmd_flickrcover(message):
     Example:
     /photos/135801662@N07/**COPY_THIS_NUMBER**/in/album-72157655600356143/
     """
+    message = ctx.message
     photo_id = message.content[len("!flickrcover"):].strip()
     if not photo_id:
         return
@@ -812,7 +804,7 @@ def cmd_flickrcover(message):
     
     # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
-        client.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
+        bot.send_message(message.channel, "**Flickr functionality requires renewed access. Contact Fura.**")
         return
 
     # Check to see if the poster has a flickr album already
@@ -828,28 +820,30 @@ def cmd_flickrcover(message):
     try:
         flickr_api.photosets.setPrimaryPhoto(photoset_id=album_id, photo_id=photo_id)
     except:
-        client.send_message(message.author, "Cannot set Flickr album cover. \
+        bot.send_message(message.author, "Cannot set Flickr album cover. \
             Invalid image ID. Check **!help !flickrcover** for instructions.")
         return
 
     # Get the link to share
     album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
     s = "You changed your album cover successfully.\n" + album_link
-    client.send_message(message.author, s)
+    bot.send_message(message.author, s)
     return
 
 
-def cmd_debug(message):
+@bot.command(pass_context=True, name="debug")
+async def cmd_debug(ctx):
+    message = ctx.message
     content = message.content.strip()[len("!debug "):]
     result = "```\n" + str(eval(content))  + "```\n"
-    client.send_message(message.channel, result)
+    bot.send_message(message.channel, result)
     return
 
 
 def get_channel(client, name):
     tixiv = None
 
-    for server in client.servers:
+    for server in bot.servers:
         if server.name == 'titanium-ffxiv':
             tixiv = server
 
@@ -937,7 +931,6 @@ def main():
         handlers["!catgif"] = cmd_catgif
         handlers["!upboat"] = cmd_upboat
         handlers["!downboat"] = cmd_downboat
-        handlers["!help"] = cmd_help
         handlers["!lookup"] = cmd_lookup
         handlers["!poll"] = cmd_poll
         handlers["!seen"] = cmd_seen
@@ -990,7 +983,7 @@ def main():
 
         # Get the list of channels assigned to the user (or a default), remove any that don't exist
         for channel in filter(lambda x: x is not None, channels.get(user, [default])):
-            client.send_message(channel, msg)
+            bot.send_message(channel, msg)
 
     @tp.register_event("no_tweets")
     def no_tweets():
@@ -1009,12 +1002,11 @@ def main():
         flickr_api.get_access_token(str(verifier))
 
     # Connect to Discord, and begin listening to events.
-    client.login(email, password)
     try:
-        client.run() #This blocks the main thread.
+        bot.run(email, password) #This blocks the main thread.
     except KeyboardInterrupt:
-        print("\nti-bot: Closing API Client...", end=' ')
-        client.logout()
+        print("\nti-bot: Closing API bot...", end=' ')
+        bot.logout()
         print("Done.")
         print("ti-bot: Closing Twitter Listener...", end=' ')
         print("Done.")

@@ -5,3 +5,4 @@
 *.pyproj
 env/
 config.txt
+discord.log
