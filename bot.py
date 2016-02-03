@@ -828,6 +828,14 @@ async def cmd_flickrcover(ctx):
 
 @bot.command(pass_context=True, name="debug")
 async def cmd_debug(ctx):
+    """
+    **!debug**
+
+    Usage:
+      !debug <python code>
+
+    Execute arbitrary python code.
+    """
     message = ctx.message
     content = message.content.strip()[len("!debug "):]
     result = "```\n" + str(eval(content)) + "```\n"
@@ -849,6 +857,21 @@ def get_channel(client, name):
             return channel
 
     return None
+
+
+@bot.command(name="skip")
+async def cmd_skip():
+    """
+    **!skip**
+
+    Usage:
+      !skip
+
+    Skips the currently playing song in the music channel.
+    Usable only in #youtube.
+    """
+    # This function is only defined for the docs.
+    pass
 
 
 def main():
