@@ -15,7 +15,6 @@ import microsofttranslator
 from urllib.request import FancyURLopener
 from ti_poll import Poll
 from ti_traffic import TrafficLight
-from ti_twitter import TwitterPoll
 from discord.ext import commands
 
 
@@ -38,8 +37,10 @@ flickr_api = None
 # The actual API client that deals with Discord events.
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+handler = logging.FileHandler(
+    filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(
+    logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
 # Object to manage poll tracking
@@ -48,9 +49,83 @@ currentPoll = None
 # Object to manage spam tracking
 trafficLight = TrafficLight()
 
-tidesc = "Ti bot!"
-bot = commands.Bot(command_prefix='!', description=tidesc)
-    
+tidesc = "Titanium's very own Discord Bot."
+
+
+# Ripped wholestale from Danny's examples.
+class VoiceEntry:
+    def __init__(self, message, song):
+        self.requester = message.author
+        self.channel = message.channel
+        self.song = song
+
+
+class TiBot(commands.Bot):
+    def __init__(self, **kwargs):
+        super(TiBot, self).__init__(**kwargs)
+        self.songs = asyncio.Queue()
+        self.play_next_song = asyncio.Event()
+        self.starter = None
+        self.player = None
+        self.current = None
+
+    def toggle_next_song(self):
+        self.loop.call_soon_threadsafe(self.play_next_song.set)
+
+    def can_control_song(self, author):
+        return author == self.starter or (self.current is not None and author == self.current.requester)
+
+    def is_playing(self):
+        return self.player is not None and self.player.is_playing()
+
+
+bot = TiBot(command_prefix='!', description=tidesc)
+
+
+@bot.listen('on_message')
+async def yt_channel_on_message(message):
+    if message.channel.name != "youtube":
+        return
+
+    # Have the bot join the voice channel for music if not yet done.
+    if not bot.is_voice_connected():
+        channel = discord.utils.find(lambda c: c.name.lower() == "music" and c.type == discord.ChannelType.voice, message.server.channels)
+        if channel is None:
+            await bot.send_message(message.channel, "Error - Unable to find the music channel. Did it get removed?")
+            return
+        await bot.join_voice_channel(channel)
+
+    if message.content.startswith("!skip"):
+        if not bot.is_playing():
+            await bot.send_message(message.channel, "No song is currently playing.")
+            return
+        if bot.player:
+            bot.player.stop()
+            return
+
+    link = message.content.strip()
+    m = re.match("^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$", link)
+    if not m:
+        return
+    await bot.songs.put(VoiceEntry(message, link))
+    await bot.send_message(message.channel, message.author.name + ': your requested song was added to the queue.')
+
+    # If nothing is playing, start playing immediately
+    if not bot.is_playing():
+        await next_song()
+
+
+async def next_song():
+    while True:
+        bot.play_next_song.clear()
+        if bot.songs.empty():
+            return
+        bot.current = await bot.songs.get()
+        bot.player = await bot.voice.create_ytdl_player(bot.current.song, after=bot.toggle_next_song)
+        bot.player.start()
+        await bot.send_message(bot.current.channel, "**♪♪Now Playing♪♪**: " + bot.player.title)
+        await bot.play_next_song.wait()
+
 
 @bot.event
 async def on_ready():
@@ -71,7 +146,7 @@ async def on_status(member):
 
     with open("seen.dat", "w") as f:
         f.write(json.dumps(data))
-    
+
     print("    seen.dat file updated")
 
 
@@ -116,7 +191,8 @@ async def cmd_catgif():
 
 async def _cmd_cat(file_type="png"):
     """Do work function for cats."""
-    r = requests.get(CAT_API_URL, {"api_key": CAT_API_KEY, "format": "src", "type": file_type, "size": "small"})
+    r = requests.get(CAT_API_URL, {
+                     "api_key": CAT_API_KEY, "format": "src", "type": file_type, "size": "small"})
     await bot.say(r.url)
 
 
@@ -133,9 +209,9 @@ async def cmd_boat(ctx):
       !boat fura
       !boat drakeon--
 
-    Upboats/downboats a thing. Note that this need not be a user - it can 
-    be *anything*. Not specifying a thing will show the top 5 upboated and 
-    bottom 5 downboated things. Specifying a thing, but no ++/-- operation 
+    Upboats/downboats a thing. Note that this need not be a user - it can
+    be *anything*. Not specifying a thing will show the top 5 upboated and
+    bottom 5 downboated things. Specifying a thing, but no ++/-- operation
     will display that thing's boat count.
 
     ***!upboat*** *and* ***!downboat*** *are shorthands for this command.*
@@ -163,10 +239,10 @@ async def cmd_boat(ctx):
         s = s + "\n\nBottom 5 downboated things:\n"
         for k in bottom_keys[:5]:
             s = s + k.lower() + ": " + str(data[k]) + "\n"
-        
+
         await bot.say(s)
         return
-    
+
     op = thing[-2:]
 
     # !karma ++  not allowed!
@@ -215,7 +291,7 @@ async def cmd_upboat(ctx):
 
     Example:
       !upboat fura
-    
+
     Shorthand for **!boat <thing>++**
     """
     await cmd_shortboat(ctx)
@@ -231,7 +307,7 @@ async def cmd_downboat(ctx):
 
     Example:
       !downboat fura
-    
+
     Shorthand for **!boat <thing>--**
     """
     await cmd_shortboat(ctx)
@@ -282,7 +358,8 @@ async def cmd_lookup(word):
     if entry["example"].strip() != "":
         response += "*" + entry["example"].strip() + "*"
 
-    # TODO: Need to make sure we're not sending unicode that the API can't handle here
+    # TODO: Need to make sure we're not sending unicode that the API can't
+    # handle here
     if response:
         try:
             await bot.say(response)
@@ -319,7 +396,7 @@ async def cmd_poll(ctx):
     if isinstance(message.channel, discord.channel.PrivateChannel):
         await bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
-    
+
     # !poll - display the poll
     if not opts:
         if currentPoll:
@@ -353,14 +430,14 @@ async def cmd_poll(ctx):
     for i in range(len(opts)):
         opts[i] = opts[i].strip()
 
-
     currentPoll = Poll(message.author, opts[0], opts[1:])
-    s = "**" + message.author.name + " starts a poll.**\n" + currentPoll.pretty_print()
+    s = "**" + message.author.name + \
+        " starts a poll.**\n" + currentPoll.pretty_print()
     await bot.send_message(message.channel, s)
 
 
 @bot.command(pass_context=True, name="vote")
-async def cmd_vote(ctx, choice : int):
+async def cmd_vote(ctx, choice: int):
     """
     **!vote**
 
@@ -369,7 +446,7 @@ async def cmd_vote(ctx, choice : int):
 
     Example:
       !vote 2
-    
+
     Votes for a choice in the current poll.
     """
     message = ctx.message
@@ -384,7 +461,8 @@ async def cmd_vote(ctx, choice : int):
         await bot.send_message(message.channel, "There is no poll underway.")
     msg = message.author.name + " casts a vote for **" + str(choice) + "**."
     if currentPoll.already_voted(message.author.name):
-        msg = message.author.name + " changes their vote to **" + str(choice) + "**."
+        msg = message.author.name + \
+            " changes their vote to **" + str(choice) + "**."
 
     success = currentPoll.vote(message.author.name, choice)
     if not success:
@@ -423,7 +501,8 @@ async def cmd_seen(ctx):
         await bot.say("This command must be run in the general chat channel, not in a PM. Sorry!")
         return
 
-    found = [x for x in message.channel.server.members if x.status != discord.enums.Status.offline and x.name.lower() == key]
+    found = [x for x in message.channel.server.members if x.status !=
+             discord.enums.Status.offline and x.name.lower() == key]
 
     # The user is currently online
     if len(found) > 0:
@@ -449,9 +528,9 @@ async def cmd_seen(ctx):
     hours = tdiff // 3600 % 24
     minutes = tdiff // 60 % 60
     seconds = tdiff % 60
-    await bot.say(user[0].upper() + user[1:] + \
-        " was last seen **%.0f days, %.0f hours, %.0f minutes, and %.0f seconds ago**." \
-        % (days, hours, minutes, seconds))
+    await bot.say(user[0].upper() + user[1:] +
+                  " was last seen **%.0f days, %.0f hours, %.0f minutes, and %.0f seconds ago**."
+                  % (days, hours, minutes, seconds))
 
 
 @bot.command(pass_context=True, name="roll")
@@ -476,7 +555,7 @@ async def cmd_roll(ctx):
 
     num = None
     sides = None
-    
+
     # same as !roll 1d20
     if not opt:
         num = 1
@@ -502,7 +581,8 @@ async def cmd_roll(ctx):
         results[i] = random.randint(1, sides)
 
     results = [str(_) for _ in results]
-    s = "*Dice roll! " + message.author.name + " rolls* ***" + opt + "!***\n    " + ", ".join(results)
+    s = "*Dice roll! " + message.author.name + \
+        " rolls* ***" + opt + "!***\n    " + ", ".join(results)
     await bot.say(s)
 
 
@@ -522,7 +602,8 @@ async def cmd_coinflip():
     if random.randint(0, 1) == 1:
         result = "tails"
 
-    s = "*" + message.author.name + " flips a coin...* ***" + str(result) + "!***"
+    s = "*" + message.author.name + \
+        " flips a coin...* ***" + str(result) + "!***"
     await bot.say(s)
 
 
@@ -540,7 +621,8 @@ async def cmd_random():
     """
     result = random.randint(1, 99)
 
-    s = "*Dice roll! " + message.author.name + " rolls* ***" + str(result) + "!***"
+    s = "*Dice roll! " + message.author.name + \
+        " rolls* ***" + str(result) + "!***"
     await bot.say(s)
 
 
@@ -601,7 +683,7 @@ async def cmd_flickr(ctx):
     flickr_user_id = '135801662@N07'
 
     album_name = message.author.name + "'s album"
-    
+
     # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
         await bot.say("**Flickr functionality requires renewed access. Contact Fura.**")
@@ -613,7 +695,8 @@ async def cmd_flickr(ctx):
             if album_name == photoset.find('title').text:
                 album_id = photoset.attrib['id']
         if album_id:
-            album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
+            album_link = "https://www.flickr.com/photos/" + \
+                flickr_user_id + "/albums/" + album_id
             await bot.say(message.author.name + " shares their album!\n" + album_link)
         return
 
@@ -647,7 +730,7 @@ async def cmd_flickr(ctx):
 
     # cleanup the file stored locally
     os.remove(fname)
-    
+
     # Get the photo id
     photo_id = response.findtext('photoid')
 
@@ -656,13 +739,14 @@ async def cmd_flickr(ctx):
     for photoset in flickr_api.walk_photosets():
         if album_name == photoset.find('title').text:
             album_id = photoset.attrib['id']
-    
+
     # We've uploaded before! Add our photo to our already existing album
     if album_id:
         flickr_api.photosets.addPhoto(photoset_id=album_id, photo_id=photo_id)
     else:
         # Create a new album with initial photo as this one
-        flickr_api.photosets.create(title=album_name, primary_photo_id=photo_id)
+        flickr_api.photosets.create(
+            title=album_name, primary_photo_id=photo_id)
 
     # Now that we've created it, we need to go looking again for the ID
     if not album_id:
@@ -671,8 +755,10 @@ async def cmd_flickr(ctx):
                 album_id = photoset.attrib['id']
 
     # Get the link to share
-    album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
-    s = message.author.name + " has uploaded a new photo to their album!\n" + album_link
+    album_link = "https://www.flickr.com/photos/" + \
+        flickr_user_id + "/albums/" + album_id
+    s = message.author.name + \
+        " has uploaded a new photo to their album!\n" + album_link
     await bot.say(s)
 
 
@@ -691,7 +777,7 @@ async def cmd_flickrcover(ctx):
     album image. You must have uploaded a picture using **!flickr** first, or else
     you will not have an album generated for you.
 
-    **HOW TO FIND YOUR IMAGE ID**        
+    **HOW TO FIND YOUR IMAGE ID**
     1. Type **!flickr** for a link to your album.
     2. Click the link.
     3. Go to the image you desire to be your cover. **This must be in YOUR album!**
@@ -709,7 +795,7 @@ async def cmd_flickrcover(ctx):
     flickr_user_id = '135801662@N07'
 
     album_name = message.author.name + "'s album"
-    
+
     # Make sure the flickr api is valid
     if not flickr_api.token_valid(perms="write"):
         await bot.say("**Flickr functionality requires renewed access. Contact Fura.**")
@@ -720,20 +806,22 @@ async def cmd_flickrcover(ctx):
     for photoset in flickr_api.walk_photosets():
         if album_name == photoset.find('title').text:
             album_id = photoset.attrib['id']
-    
+
     # We've uploaded before! Add our photo to our already existing album
     if not album_id:
         return
 
     try:
-        flickr_api.photosets.setPrimaryPhoto(photoset_id=album_id, photo_id=photo_id)
+        flickr_api.photosets.setPrimaryPhoto(
+            photoset_id=album_id, photo_id=photo_id)
     except:
         await bot.send_message(message.author, "Cannot set Flickr album cover. \
             Invalid image ID. Check **!help !flickrcover** for instructions.")
         return
 
     # Get the link to share
-    album_link = "https://www.flickr.com/photos/" + flickr_user_id + "/albums/" + album_id
+    album_link = "https://www.flickr.com/photos/" + \
+        flickr_user_id + "/albums/" + album_id
     s = "You changed your album cover successfully.\n" + album_link
     await bot.send_message(message.author, s)
 
@@ -742,7 +830,7 @@ async def cmd_flickrcover(ctx):
 async def cmd_debug(ctx):
     message = ctx.message
     content = message.content.strip()[len("!debug "):]
-    result = "```\n" + str(eval(content))  + "```\n"
+    result = "```\n" + str(eval(content)) + "```\n"
     await bot.send_message(message.channel, result)
 
 
@@ -757,7 +845,7 @@ def get_channel(client, name):
         return None
 
     for channel in tixiv.channels:
-        if channel.name == name: #There are no hashtags in channel names
+        if channel.name == name:  # There are no hashtags in channel names
             return channel
 
     return None
@@ -774,7 +862,8 @@ def main():
 
     # Create it, if it doesn't exist.
     if not os.path.isfile("config.txt"):
-        print("No config file found. Generating one - please fill out information in " + os.path.join(os.getcwd(), "config.txt"))
+        print("No config file found. Generating one - please fill out information in " +
+              os.path.join(os.getcwd(), "config.txt"))
         with open('config.txt', 'w') as configfile:
             config['Discord'] = {'email': DEF_VAL, 'password': DEF_VAL}
             config['TheCatAPI.com'] = {'api_key': DEF_VAL}
@@ -783,8 +872,10 @@ def main():
                                  "access_token_key": DEF_VAL,
                                  "access_token_secret": DEF_VAL}
             config['Twitter Feed'] = {'default_channel': "general"}
-            config['Flickr'] = {'flickr_api_key': DEF_VAL, 'flickr_secret_key': DEF_VAL}
-            config['Microsoft Translate'] = {'api_key': DEF_VAL, 'secret_key': DEF_VAL}
+            config['Flickr'] = {
+                'flickr_api_key': DEF_VAL, 'flickr_secret_key': DEF_VAL}
+            config['Microsoft Translate'] = {
+                'api_key': DEF_VAL, 'secret_key': DEF_VAL}
             config.write(configfile)
         return
 
@@ -799,7 +890,7 @@ def main():
     twitter_access_token_key = config['Twitter']['access_token_key']
     twitter_access_token_secret = config['Twitter']['access_token_secret']
 
-    twitter_default_channel = config['Twitter Feed']['default_channel']
+    # twitter_default_channel = config['Twitter Feed']['default_channel']
 
     FLICKR_API_KEY = config['Flickr']['api_key']
     FLICKR_SECRET_KEY = config['Flickr']['secret_key']
@@ -807,15 +898,17 @@ def main():
     MICROSOFT_TRANSLATE_API = config['Microsoft Translate']['api_key']
     MICROSOFT_TRANSLATE_SECRET = config['Microsoft Translate']['secret_key']
 
-    mstranslate_api = microsofttranslator.Translator(MICROSOFT_TRANSLATE_API, MICROSOFT_TRANSLATE_SECRET)
+    mstranslate_api = microsofttranslator.Translator(
+        MICROSOFT_TRANSLATE_API, MICROSOFT_TRANSLATE_SECRET)
 
     to_fill = [email, password, CAT_API_KEY, twitter_consumer_key, twitter_consumer_secret,
-        twitter_access_token_key, twitter_access_token_secret, FLICKR_API_KEY, FLICKR_SECRET_KEY]
+               twitter_access_token_key, twitter_access_token_secret, FLICKR_API_KEY, FLICKR_SECRET_KEY]
 
     # Prevent execution if the configuration file isn't complete
     for arg in to_fill:
         if arg == DEF_VAL:
-            print("config.txt has not been fully completed. Fully fill out config.txt and re-run.")
+            print(
+                "config.txt has not been fully completed. Fully fill out config.txt and re-run.")
             return
 
     # Create necessary files for data tracking
@@ -830,12 +923,12 @@ def main():
             f.write("{}")
 
     # Twitter listener
-    # tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret, 
+    # tp = TwitterPoll(twitter_access_token_key, twitter_access_token_secret,
     #     twitter_consumer_key, twitter_consumer_secret, polling_seconds=70)
 
     # @tp.register_event("new_tweet")
     # def new_tweet(user, tweet, tweetdata):
-    #     # Map twitter users to channels
+    # Map twitter users to channels
     #     user = user.lower()
     #     default = get_channel(client, twitter_default_channel)
     #     channels = {}
@@ -845,7 +938,7 @@ def main():
     #             continue
     #         channels[each_key.lower()] = [get_channel(client, cname.strip()) for cname in each_val.split(",")]
 
-    #     # Pre-processing
+    # Pre-processing
     #     t_content = tweet
     #     t_translated = None
 
@@ -853,15 +946,15 @@ def main():
     #     t_cleaned = ''.join(e for e in t_nourl if e.isalnum() or e in (' '))
 
     #     direct_link = "https://twitter.com/Ti_DiscordBot/status/" + tweetdata['id_str']
-        
+
     #     if mstranslate_api.detect_language(t_cleaned) != 'en':
     #         t_translated = mstranslate_api.translate(t_nourl, 'en')
-        
-    #     msg = direct_link
-    #     #if t_translated:
-    #     #    msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
 
-    #     # Get the list of channels assigned to the user (or a default), remove any that don't exist
+    #     msg = direct_link
+    # if t_translated:
+    # msg += "\n  *Auto-Translate: " + t_translated.encode('utf-8') + "*"
+
+    # Get the list of channels assigned to the user (or a default), remove any that don't exist
     #     for channel in filter(lambda x: x is not None, channels.get(user, [default])):
     #         await bot.send_message(channel, msg)
 
@@ -883,7 +976,7 @@ def main():
 
     # Connect to Discord, and begin listening to events.
     try:
-        bot.run(email, password) #This blocks the main thread.
+        bot.run(email, password)  # This blocks the main thread.
     except KeyboardInterrupt:
         print("\nti-bot: Closing API bot...", end=' ')
         bot.logout()
@@ -893,7 +986,8 @@ def main():
         # tp.stop()
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
+        traceback.print_exception(
+            exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
     print("SEE YOU SPACE COWBOY...")
 
 
