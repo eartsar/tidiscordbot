@@ -283,8 +283,8 @@ async def cmd_shortboat(ctx):
     await _cmd_boat(message, thing, op, data)
 
 
-@bot.command(pass_context=True, name="lookup")
-async def cmd_lookup(ctx):
+@bot.command(name="lookup")
+async def cmd_lookup(word):
     """
     **!lookup**
 
@@ -297,11 +297,6 @@ async def cmd_lookup(ctx):
     Looks up the term on Merriam-Webster's online dictionary.
     And by Merriam-Webster, we do mean Urban Dictionary.
     """
-    message = ctx.message
-    word = message.content[len("!lookup "):].strip()
-    if not word:
-        return
-
     response = ""
     entry = urbandict.define(word)[0]
 
@@ -316,7 +311,7 @@ async def cmd_lookup(ctx):
     # TODO: Need to make sure we're not sending unicode that the API can't handle here
     if response:
         try:
-            bot.send_message(message.channel, response)
+            await bot.say(response)
         except:
             print("Unicode error in !lookup()")
     return
@@ -348,31 +343,31 @@ async def cmd_poll(ctx):
     opts = message.content[len("!poll "):].strip()
 
     if isinstance(message.channel, discord.channel.PrivateChannel):
-        bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        await bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
     
     # !poll - display the poll
     if not opts:
         if currentPoll:
-            bot.send_message(message.channel, currentPoll.pretty_print())
+            await bot.send_message(message.channel, currentPoll.pretty_print())
         else:
-            bot.send_message(message.channel, "There is no poll underway.")
+            await bot.send_message(message.channel, "There is no poll underway.")
         return
 
     # !poll close - close the poll
     if opts == "close":
         if not currentPoll:
-            bot.send_message(message.channel, "There is no poll underway.")
+            await bot.send_message(message.channel, "There is no poll underway.")
         else:
             if currentPoll.can_close(message.author):
-                bot.send_message(message.channel, "**Poll closed!**\n" + currentPoll.pretty_print())
+                await bot.send_message(message.channel, "**Poll closed!**\n" + currentPoll.pretty_print())
                 currentPoll = None
             else:
-                bot.send_message(message.channel, "The poll is open for another %.0f seconds." % currentPoll.time_left())
+                await bot.send_message(message.channel, "The poll is open for another %.0f seconds." % currentPoll.time_left())
         return
 
     if currentPoll:
-        bot.send_message(message.channel, "A poll is already underway. Let that one finish first before starting another.")
+        await bot.send_message(message.channel, "A poll is already underway. Let that one finish first before starting another.")
         return
 
     # !poll question;choice;choice...
@@ -387,11 +382,11 @@ async def cmd_poll(ctx):
 
     currentPoll = Poll(message.author, opts[0], opts[1:])
     s = "**" + message.author.name + " starts a poll.**\n" + currentPoll.pretty_print()
-    bot.send_message(message.channel, s)
+    await bot.send_message(message.channel, s)
 
 
 @bot.command(pass_context=True, name="vote")
-async def cmd_vote(ctx):
+async def cmd_vote(ctx, choice : int):
     """
     **!vote**
 
@@ -404,20 +399,15 @@ async def cmd_vote(ctx):
     Votes for a choice in the current poll.
     """
     message = ctx.message
-    choice = message.content[len("!vote "):].strip()
-    if not choice:
-        return
-
     if isinstance(message.channel, discord.channel.PrivateChannel):
-        bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        await bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
         return
 
-    if len(choice) != 1 or choice not in "1234566789":
-        return
+    # if len(choice) != 1 or choice not in "1234566789":
+    #     return
 
     if not currentPoll:
-        bot.send_message(message.channel, "There is no poll underway.")
-    choice = int(choice)
+        await bot.send_message(message.channel, "There is no poll underway.")
     msg = message.author.name + " casts a vote for **" + str(choice) + "**."
     if currentPoll.already_voted(message.author.name):
         msg = message.author.name + " changes their vote to **" + str(choice) + "**."
@@ -425,8 +415,7 @@ async def cmd_vote(ctx):
     success = currentPoll.vote(message.author.name, choice)
     if not success:
         return
-    bot.send_message(message.channel, msg)
-    return
+    await bot.send_message(message.channel, msg)
 
 
 @bot.command(pass_context=True, name="seen")
@@ -438,7 +427,7 @@ async def cmd_seen(ctx):
       !seen <user>
 
     Example:
-      !lookup fura barumaru
+      !seen fura barumaru
 
     Checks to see the last time a particular user was
     seen online by ti-bot.
@@ -457,15 +446,14 @@ async def cmd_seen(ctx):
 
     # PMs are separate from servers, so running this in a PM doesn't make sense
     if isinstance(message.channel, discord.channel.PrivateChannel):
-        bot.send_message(message.channel, "This command must be run in the general chat channel, not in a PM. Sorry!")
+        await bot.say("This command must be run in the general chat channel, not in a PM. Sorry!")
         return
 
-
-    found = [x for x in message.channel.server.members if x.status != "offline" and x.name.lower() == key]
+    found = [x for x in message.channel.server.members if x.status != discord.enums.Status.offline and x.name.lower() == key]
 
     # The user is currently online
     if len(found) > 0:
-        bot.send_message(message.channel, user + " is currently **online**.")
+        await bot.say(user + " is currently **online**.")
 
         # Haven't seen the user - add to the dat
         if key not in data:
@@ -478,7 +466,7 @@ async def cmd_seen(ctx):
 
     # The user isn't online, but hasn't been tracked
     if key not in data:
-        bot.send_message(message.channel, "I haven't seen " + user + " before.")
+        await bot.say("I haven't seen " + user + " before.")
         return
 
     t = data[key]
@@ -487,10 +475,9 @@ async def cmd_seen(ctx):
     hours = tdiff // 3600 % 24
     minutes = tdiff // 60 % 60
     seconds = tdiff % 60
-    bot.send_message(message.channel, user[0].upper() + user[1:] + \
+    await bot.say(user[0].upper() + user[1:] + \
         " was last seen **%.0f days, %.0f hours, %.0f minutes, and %.0f seconds ago**." \
         % (days, hours, minutes, seconds))
-    return
 
 
 @bot.command(pass_context=True, name="roll")
@@ -542,12 +529,11 @@ async def cmd_roll(ctx):
 
     results = [str(_) for _ in results]
     s = "*Dice roll! " + message.author.name + " rolls* ***" + opt + "!***\n    " + ", ".join(results)
-    bot.send_message(message.channel, s)
-    return
+    await bot.say(s)
 
 
-@bot.command(pass_context=True, name="flip")
-async def cmd_flip(ctx):
+@bot.command(name="coinflip")
+async def cmd_coinflip():
     """
     **!coinflip**
 
@@ -558,23 +544,16 @@ async def cmd_flip(ctx):
 
     *Also see* ***!roll*** and ***!random*** *for more random games.*
     """
-    message = ctx.message
-    opt = message.content[len("!coinflip "):].strip()
-
-    if opt:
-        return
-
     result = "heads"
     if random.randint(0, 1) == 1:
         result = "tails"
 
     s = "*" + message.author.name + " flips a coin...* ***" + str(result) + "!***"
-    bot.send_message(message.channel, s)
-    return
+    await bot.say(s)
 
 
-@bot.command(pass_context=True, name="random")
-async def cmd_random(ctx):
+@bot.command(name="random")
+async def cmd_random():
     """
     **!random**
 
@@ -585,17 +564,10 @@ async def cmd_random(ctx):
 
     *Also see* ***!roll*** and ***!coinflip*** *for more random games.*
     """
-    message = ctx.message
-    opt = message.content[len("!random "):].strip()
-
-    if opt:
-        return
-
     result = random.randint(1, 99)
 
     s = "*Dice roll! " + message.author.name + " rolls* ***" + str(result) + "!***"
-    bot.send_message(message.channel, s)
-    return
+    await bot.say(s)
 
 
 @bot.command(pass_context=True, name="wipe")
