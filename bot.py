@@ -1019,19 +1019,22 @@ def main():
         flickr_api.get_access_token(str(verifier))
 
     # Connect to Discord, and begin listening to events.
-    try:
-        bot.run(email, password)  # This blocks the main thread.
-    except KeyboardInterrupt:
-        print("\nti-bot: Closing API bot...", end=' ')
-        bot.logout()
-        print("Done.")
-        # print("ti-bot: Closing Twitter Listener...", end=' ')
-        # print("Done.")
-        # tp.stop()
-    except:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(
-            exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
+    while True:
+        try:
+            bot.run(email, password)  # This blocks the main thread.
+        except KeyboardInterrupt:
+            print("\nti-bot: Closing API bot...", end=' ')
+            bot.logout()
+            print("Done.")
+            # print("ti-bot: Closing Twitter Listener...", end=' ')
+            # print("Done.")
+            # tp.stop()
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(
+                exc_type, exc_value, exc_traceback, limit=None, file=sys.stdout)
+            print("\nti-bot: Attempting to reconnect in 30s...")
+            time.sleep(30)
     print("SEE YOU SPACE COWBOY...")
 
 
